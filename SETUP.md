@@ -151,3 +151,53 @@ Powers:
   (suspended users get signed out and can't use the app)
 - Deals: see every deal platform-wide, filter by status, cancel a deal
 - Payouts: the to-pay queue, mark creators as paid
+
+=========================================================
+6. SHOWCASE VIDEOS (creator portfolio)
+=========================================================
+Creators upload 2-3 best-work videos during onboarding. You approve each one
+in the admin panel before brands can see it. Videos live in Supabase Storage
+(free up to 1 GB).
+
+ONE-TIME SETUP:
+
+A) Run portfolio-patch.sql in Supabase SQL Editor (creates the portfolio table
+   + policies, adds showcase_done flag). Safe to re-run.
+
+B) Create the storage bucket:
+   Supabase -> Storage -> "New bucket"
+     Name:   showcase
+     Public bucket: YES (toggle on) -- so videos can play in the app
+   Create.
+
+C) Add upload + read policies for the bucket:
+   Storage -> Policies -> on the "showcase" bucket -> New policy ->
+   use "For full customization" and add these two:
+
+   -- Allow signed-in users to upload
+   Policy name: authed upload
+   Allowed operation: INSERT
+   Target roles: authenticated
+   USING / WITH CHECK expression:  bucket_id = 'showcase'
+
+   -- Allow anyone to read (since bucket is public this is usually automatic,
+   -- but add it to be safe)
+   Policy name: public read
+   Allowed operation: SELECT
+   Target roles: public
+   USING expression:  bucket_id = 'showcase'
+
+That's it. No separate server needed — Supabase Storage handles the files.
+
+HOW IT FLOWS:
+- New creator finishes profile -> must upload 2-3 videos -> can't reach home
+  until done.
+- Each video starts "pending". Brands do NOT see pending videos.
+- You review in Admin -> Showcase tab: watch each, Approve or Reject.
+- Approved videos appear on the creator's profile for brands ("Best work").
+- You can take down an approved video anytime.
+
+STORAGE LIMITS / COST:
+- Free tier: 1 GB (~15-30 short phone videos). App caps each upload at 50 MB.
+- Beyond free: ~$0.021/GB/month. Cheap, but watch it as you scale.
+- If storage gets expensive later, we can switch to reel-link embeds instead.

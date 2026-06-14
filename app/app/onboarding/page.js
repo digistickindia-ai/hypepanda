@@ -79,6 +79,8 @@ function OnboardingInner() {
     const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     setSaving(false);
     if (error) { alert("Couldn't save: " + error.message); return; }
+    // Creators must add showcase videos before reaching home.
+    if (isCreator) { router.replace("/app/onboarding/showcase"); return; }
     router.replace("/app/home");
   };
 

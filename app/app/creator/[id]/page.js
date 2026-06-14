@@ -9,6 +9,7 @@ export default function CreatorDetail() {
   const { id } = useParams();
   const [me, setMe] = useState(null);
   const [creator, setCreator] = useState(null);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showOffer, setShowOffer] = useState(false);
 
@@ -18,6 +19,8 @@ export default function CreatorDetail() {
     setMe(res);
     const { data } = await res.supabase.from("profiles").select("*").eq("id", id).single();
     setCreator(data);
+    const { data: vids } = await res.supabase.from("portfolio").select("*").eq("creator_id", id).eq("status", "approved").order("created_at");
+    setVideos(vids || []);
     setLoading(false);
   })(); }, []);
 
@@ -55,6 +58,20 @@ export default function CreatorDetail() {
           <div style={{ background: "#fff", borderRadius: 20, padding: 18, border: "1.5px solid #efe7d6", marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--muted)", marginBottom: 6 }}>About</div>
             <div style={{ fontSize: 15, color: "var(--ink)", lineHeight: 1.5 }}>{creator.bio}</div>
+          </div>
+        )}
+
+        {videos.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 10 }}>Best work 🎬</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {videos.map((v) => (
+                <div key={v.id} style={{ background: "#fff", borderRadius: 18, padding: 10, border: "1.5px solid #efe7d6" }}>
+                  <video src={v.video_url} controls playsInline style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 280 }} />
+                  {v.caption && <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginTop: 8, padding: "0 4px" }}>{v.caption}</div>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

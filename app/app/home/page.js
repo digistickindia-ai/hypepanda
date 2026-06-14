@@ -22,6 +22,11 @@ function HomeInner() {
       router.replace("/app/onboarding?role=" + role);
       return;
     }
+    if (profile.role === "creator" && !profile.showcase_done) {
+      router.replace("/app/onboarding/showcase");
+      return;
+    }
+    if (profile.suspended) { await supabase.auth.signOut(); router.replace("/?suspended=1"); return; }
     setMe({ user, profile, supabase });
     setLoading(false);
   })(); }, []);
