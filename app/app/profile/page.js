@@ -85,8 +85,8 @@ function ProfileInner() {
         </div>
 
         {p.is_admin && (
-          <button onClick={() => router.push("/app/admin")} className="pressable" style={{ width: "100%", background: "var(--coral)", color: "#4A1B0C", border: "none", borderRadius: 22, padding: "15px", fontSize: 15, fontWeight: 800, marginBottom: 10 }}>
-            💰 Payout queue (admin)
+          <button onClick={() => router.push("/admin")} className="pressable" style={{ width: "100%", background: "var(--coral)", color: "#4A1B0C", border: "none", borderRadius: 22, padding: "15px", fontSize: 15, fontWeight: 800, marginBottom: 10 }}>
+            🛠 Admin panel
           </button>
         )}
 

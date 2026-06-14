@@ -130,3 +130,24 @@ LAUNCH CHECKLIST
 [ ] Start Meta app review for Instagram (step 4) — do this early
 [ ] Cashfree KYC + Payouts for real money
 [ ] When ready for public: publish the Google OAuth app + set Cashfree to production
+
+=========================================================
+5. ADMIN PANEL
+=========================================================
+A full admin control center lives at /admin (only visible to admins).
+Tabs: Overview (stats + money), Users (verify/suspend), Deals (view/cancel),
+Payouts (the payout queue).
+
+TO ENABLE THE NEW ADMIN ACTIONS:
+Run admin-patch.sql in Supabase SQL Editor (adds the "suspended" flag and the
+admin update/delete policies). Safe to re-run.
+
+Reach it from Profile -> "Admin panel" (button shows only for admins), or go
+straight to yoursite.vercel.app/admin .
+
+Powers:
+- Overview: total users, creators vs businesses, deals, GMV, money held, your earnings
+- Users: search/filter, verify or unverify creators, suspend/unsuspend users
+  (suspended users get signed out and can't use the app)
+- Deals: see every deal platform-wide, filter by status, cancel a deal
+- Payouts: the to-pay queue, mark creators as paid
