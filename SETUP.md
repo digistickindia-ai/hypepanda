@@ -1,91 +1,132 @@
-# HypePanda — Internal app setup (the part you do)
+# HypePanda — Full setup guide
 
-The code is 100% done. To make sign-in + profiles work with REAL data, you connect
-a free Supabase database and Google login. ~15 minutes, all clicking + 2 copy-pastes.
+The complete marketplace is built. This guide covers everything you connect.
+Order: 1) Database  2) Google login  3) Cashfree escrow  4) Instagram verify.
 
-Do these in order.
+You already did 1 & 2 earlier. If your DB is from the first version, RE-RUN the
+schema (step 1) — it adds deals, messages, notifications. It's safe to re-run.
 
-====================================================
-PART A — Create the database (Supabase)
-====================================================
+=========================================================
+1. DATABASE (re-run the new schema)
+=========================================================
+Supabase -> SQL Editor -> New query -> paste ALL of supabase-schema.sql -> Run.
+This adds the deals, messages, and notifications tables and turns on realtime.
 
-1. Go to https://supabase.com -> "Start your project" -> sign in with GitHub.
-2. Click "New project".
-   - Name: hypepanda
-   - Database password: make one up, SAVE IT somewhere.
-   - Region: pick "South Asia (Mumbai)" (closest to your users).
-   - Click "Create new project". Wait ~2 min while it sets up.
+=========================================================
+2. GOOGLE LOGIN  (already done)
+=========================================================
+Nothing to change. If you ever see login fail, re-check the redirect URL and
+that your Gmail is a Test User in Google Cloud -> Audience.
 
-3. Create the tables:
-   - Left sidebar -> "SQL Editor" -> "New query".
-   - Open the file  supabase-schema.sql  (in this project), copy ALL of it,
-     paste into the editor, click "Run".
-   - You should see "Success. No rows returned". Done.
+=========================================================
+3. CASHFREE  (you receive the money, you pay creators)
+=========================================================
+HOW MONEY FLOWS (manual settlement):
+  Business pays -> money lands in YOUR Cashfree account ("secured")
+  -> creator delivers -> business approves -> YOU pay the creator
+  (minus your 10% commission) from your Payout queue in the app.
 
-4. Get your two keys:
-   - Left sidebar -> "Project Settings" (gear) -> "API".
-   - Copy "Project URL"  ->  this is NEXT_PUBLIC_SUPABASE_URL
-   - Copy "anon public" key  ->  this is NEXT_PUBLIC_SUPABASE_ANON_KEY
-   - Keep this tab open.
+This means you only need a NORMAL Cashfree account — no marketplace/split
+approval needed. Faster to launch; you control every payout.
 
-====================================================
-PART B — Turn on Google login
-====================================================
+SETUP:
+A) Free account at https://www.cashfree.com -> Payment Gateway.
+B) Start in TEST mode. Dashboard -> Developers -> API Keys ->
+   copy "App ID" + "Secret Key".
+C) Add to Vercel -> Settings -> Environment Variables:
+       CASHFREE_APP_ID       = your app id
+       CASHFREE_SECRET_KEY   = your secret key
+       CASHFREE_MODE         = sandbox
+D) Redeploy.
+E) Test with Cashfree's test cards (in their docs).
 
-5. In Supabase: left sidebar -> "Authentication" -> "Sign In / Providers" ->
-   find "Google" -> toggle it ON.
-   It will ask for a "Client ID" and "Client Secret". Get those next:
+PAYING CREATORS:
+- After a business approves the work, the deal appears in your in-app
+  Payout queue (Profile -> "Payout queue (admin)").
+- It shows exactly how much to send the creator (amount minus your 10%).
+- You send that via your bank / UPI / Cashfree Payouts, then tap
+  "Mark as paid". The creator gets notified.
 
-6. Go to https://console.cloud.google.com
-   - Create a project (name it HypePanda).
-   - Search "OAuth consent screen" -> set User type = External -> fill app name
-     "HypePanda", your email -> Save through the steps.
-   - Search "Credentials" -> "Create Credentials" -> "OAuth client ID" ->
-     Application type = "Web application".
-   - Under "Authorized redirect URIs" add the callback URL that Supabase shows you
-     on the Google provider screen (looks like:
-     https://YOUR-PROJECT.supabase.co/auth/v1/callback )
-   - Click Create. Copy the "Client ID" and "Client secret".
+COMMISSION: set to 10% by default. The business sees the full price; the
+creator sees what they'll receive; you keep the difference. To change the
+rate, edit DEFAULT_COMMISSION in lib/me.js.
 
-7. Back in Supabase Google provider screen: paste Client ID + Client secret -> Save.
+GOING LIVE: complete Cashfree KYC, switch CASHFREE_MODE to "production",
+swap in production keys.
 
-====================================================
-PART C — Plug the keys into the app
-====================================================
+IMPORTANT (talk to your CA): since money passes through your account and you
+pay creators, confirm the GST treatment — you may be collecting on the
+creator's behalf, or it may count as your revenue. Get this right before
+real money flows.
 
-8. LOCAL (to test on your laptop):
-   - In this project folder, make a copy of  .env.example  named  .env.local
-   - Paste your real URL and anon key into it. Save.
-   - Run:  npm install   then   npm run dev
-   - Open http://localhost:3000  -> click through -> Sign in with Google should work.
+=========================================================
+3b. MAKE YOURSELF ADMIN (for the payout queue)
+=========================================================
+After you've signed in once with your Google account:
+Supabase -> SQL Editor -> run (with your email):
 
-9. LIVE (Vercel):
-   - Go to your project on https://vercel.com -> Settings -> "Environment Variables".
-   - Add two:
-       NEXT_PUBLIC_SUPABASE_URL        = your project URL
-       NEXT_PUBLIC_SUPABASE_ANON_KEY   = your anon key
-   - Also: in Supabase -> Authentication -> "URL Configuration" -> set
-     "Site URL" to your live address (https://hypepanda.vercel.app).
-   - Push the updated code to GitHub (GitHub Desktop -> Commit -> Push).
-     Vercel rebuilds automatically.
+  update profiles set is_admin = true
+  where id = (select id from auth.users where email = 'you@gmail.com');
 
-DONE. Real users can now sign in and create creator profiles, saved in your database.
+Then in the app, Profile shows a "Payout queue (admin)" button.
 
-====================================================
-The full flow you just built
-====================================================
-Landing (/)  ->  tap a role  ->  Sign in (/app)  ->  Google login
-   ->  Onboarding (5 playful steps: name, city, niche, instagram, rate)
-   ->  Home HQ (profile strength, niche, rate, offers)
-   ->  Profile tab (view/edit, sign out)
-   ->  Chat + Deals tabs (placeholders, built next)
+=========================================================
+4. INSTAGRAM VERIFICATION  (the verified badge + follower count)
+=========================================================
+This needs a Meta (Facebook) app and their review — the SLOWEST part, so start
+it early. The code is ready and waiting for keys.
 
-Bottom tab bar: Home / Chat / Deals / Profile.
+A) Go to https://developers.facebook.com -> My Apps -> Create App -> "Business".
+B) Add the "Instagram" + "Facebook Login" products.
+C) Settings -> Basic -> copy "App ID" and "App Secret".
+D) Facebook Login -> Settings -> Valid OAuth Redirect URIs, add:
+       https://hypepanda.vercel.app/api/instagram/callback
+E) Add to Vercel env vars:
+       INSTAGRAM_APP_ID      = your app id
+       INSTAGRAM_APP_SECRET  = your app secret
+F) Redeploy.
+G) For real users (not just you), submit the app for review requesting
+   "instagram_basic" + "pages_show_list". Until approved, only you and added
+   testers can verify. This review can take days to weeks — that's Meta, not us.
 
-====================================================
-What we build next
-====================================================
-- [ ] Real Instagram verification (auto follower count)
-- [ ] Business side: search + filter + creator cards
-- [ ] Real messaging
-- [ ] Cashfree escrow on deals
+Until Instagram is connected, creators simply show "Not yet verified" and no
+follower count. Everything else works fully.
+
+=========================================================
+THE COMPLETE APP
+=========================================================
+PUBLIC
+  /                         Landing page (Creator/Business/Agency router)
+
+CREATOR
+  /app                      Sign in
+  /app/onboarding           5-step creator setup
+  /app/home                 Panda HQ (strength, niche, rate, followers, offers)
+  /app/profile              Profile + Instagram verify
+  /app/deals                All their deals
+  /app/chat                 Conversations
+  /app/chat/[id]            Deal chat: accept/decline, deliver, get paid
+
+BUSINESS / AGENCY
+  /app/onboarding           4-step business setup
+  /app/home                 Search + niche filters + creator cards
+  /app/creator/[id]         Creator profile + "Send collab offer"
+  /app/deals                All their deals
+  /app/chat/[id]            Deal chat: pay into escrow, release payment
+
+THE DEAL LIFECYCLE (fully built)
+  Business sends offer -> Creator accepts -> Business pays (money to YOUR
+  account, shown as "Payment secured") -> Creator delivers -> Business
+  approves -> YOU pay the creator from the Payout queue -> Complete.
+  Messaging + notifications happen throughout, in realtime.
+  HypePanda keeps a 10% commission on every deal.
+
+=========================================================
+LAUNCH CHECKLIST
+=========================================================
+[ ] Re-run schema (step 1)
+[ ] Cashfree keys in Vercel + redeploy (step 3)
+[ ] Test full flow with two Google accounts (creator + business)
+[ ] Start Meta app review for Instagram (step 4) — do this early
+[ ] Cashfree KYC + Payouts for real money
+[ ] When ready for public: publish the Google OAuth app + set Cashfree to production
