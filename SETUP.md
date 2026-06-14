@@ -201,3 +201,22 @@ STORAGE LIMITS / COST:
 - Free tier: 1 GB (~15-30 short phone videos). App caps each upload at 50 MB.
 - Beyond free: ~$0.021/GB/month. Cheap, but watch it as you scale.
 - If storage gets expensive later, we can switch to reel-link embeds instead.
+
+=========================================================
+7. PROFILE PHOTOS + NEW DESIGN (v2)
+=========================================================
+Run photos-patch.sql in Supabase SQL Editor (creates the photos table).
+Photos reuse the same "showcase" storage bucket — no new bucket needed.
+
+WHAT CHANGED IN v2:
+- Cool sunglasses panda mascot everywhere (new app icon too).
+- Login: scrolling creator photo wall + sign-in at the bottom.
+- Business home: TikTok-style full-screen swipe feed of creator videos,
+  each with name, location, niche, followers + a Hire button. Swipe up/down.
+  (Shows approved videos only.)
+- Creator profile: photo grid (creator uploads, instant, no approval) PLUS
+  a Reels tab (the showcase videos, admin-approved).
+
+NOTE: the business feed shows creators who have at least one APPROVED video.
+So to see anyone in the feed, that creator must upload a reel AND you approve
+it in Admin -> Showcase.

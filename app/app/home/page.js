@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { loadMe, inr, fmtFollowers, NICHES } from "@/lib/me";
+import Panda from "../../Panda";
 import TabBar from "../TabBar";
 
 function HomeInner() {
@@ -110,97 +111,85 @@ function CreatorHome({ me, router }) {
   );
 }
 
-/* ---------------- BUSINESS HOME (search) ---------------- */
+/* ---------------- BUSINESS HOME (TikTok-style feed) ---------------- */
 function BusinessHome({ me, router }) {
-  const [creators, setCreators] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [activeNiche, setActiveNiche] = useState("");
 
   useEffect(() => { (async () => {
-    let query = me.supabase.from("profiles").select("*").eq("role", "creator").eq("onboarding_done", true);
-    const { data } = await query.order("created_at", { ascending: false });
-    setCreators(data || []);
+    const { data: vids } = await me.supabase
+      .from("portfolio").select("*").eq("status", "approved").order("created_at", { ascending: false });
+    const list = vids || [];
+    const ids = [...new Set(list.map((v) => v.creator_id))];
+    let creators = {};
+    if (ids.length) {
+      const { data: profs } = await me.supabase.from("profiles").select("*").in("id", ids);
+      (profs || []).forEach((p) => { creators[p.id] = p; });
+    }
+    const feed = list
+      .map((v) => ({ ...v, creator: creators[v.creator_id] }))
+      .filter((v) => v.creator && !v.creator.suspended);
+    setItems(feed);
     setLoading(false);
   })(); }, []);
 
-  const filtered = creators.filter((c) => {
-    const matchQ = !q || (c.full_name || "").toLowerCase().includes(q.toLowerCase()) || (c.instagram_handle || "").toLowerCase().includes(q.toLowerCase()) || (c.city || "").toLowerCase().includes(q.toLowerCase());
-    const matchN = !activeNiche || c.niche === activeNiche;
-    return matchQ && matchN;
-  });
+  if (loading) return <Loader />;
 
-  return (
-    <Shell>
-      <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "8px 0 16px", lineHeight: 1.1 }}>Find your<br />perfect creators</h1>
-
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, handle, city…" style={{
-        width: "100%", padding: "14px 18px", fontSize: 15, fontWeight: 600, border: "2px solid #e8dfcc",
-        borderRadius: 18, background: "#fff", color: "var(--ink)", outline: "none", fontFamily: "inherit", marginBottom: 14,
-      }} />
-
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 14, marginLeft: -2 }}>
-        <Pill label="All" active={!activeNiche} onClick={() => setActiveNiche("")} />
-        {NICHES.map((n) => <Pill key={n} label={n} active={activeNiche === n} onClick={() => setActiveNiche(activeNiche === n ? "" : n)} />)}
-      </div>
-
-      {loading ? (
-        <p style={{ color: "var(--muted)", fontWeight: 600, textAlign: "center", marginTop: 30 }}>Loading creators…</p>
-      ) : filtered.length === 0 ? (
-        <EmptyCreators hasAny={creators.length > 0} />
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 4 }}>
-          {filtered.map((c) => <CreatorCard key={c.id} c={c} onClick={() => router.push("/app/creator/" + c.id)} />)}
+  if (items.length === 0) {
+    return (
+      <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, textAlign: "center" }}>
+          <Panda size={90} />
+          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginTop: 12 }}>No creators yet</div>
+          <div style={{ fontSize: 14, color: "var(--muted)", fontWeight: 500, marginTop: 4 }}>As creators post approved videos, they&apos;ll show up here to discover.</div>
         </div>
-      )}
-    </Shell>
-  );
-}
-
-function CreatorCard({ c, onClick }) {
-  const colors = ["var(--coral)", "var(--blue)", "var(--pink)", "var(--yellow)", "var(--green)"];
-  const col = colors[(c.full_name || "x").charCodeAt(0) % colors.length];
-  const initials = (c.full_name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-  return (
-    <div onClick={onClick} className="pressable" style={{ background: "#fff", borderRadius: 20, padding: 14, border: "1.5px solid #efe7d6", cursor: "pointer" }}>
-      <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>
-        {c.instagram_connected && (
-          <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 800, color: "#173404" }}>✓</span>
-        )}
+        <TabBar />
       </div>
-      <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>{c.niche} · {c.city}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--coral)" }}>{inr(c.rate_per_post)}<span style={{ color: "var(--faint)", fontWeight: 600 }}>/post</span></div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ flex: 1, overflowY: "auto", scrollSnapType: "y mandatory" }}>
+        {items.map((item) => (
+          <FeedCard key={item.id} item={item} router={router} />
+        ))}
+      </div>
+      <TabBar />
     </div>
   );
 }
 
-function EmptyCreators({ hasAny }) {
+function FeedCard({ item, router }) {
+  const c = item.creator;
   return (
-    <div style={{ textAlign: "center", marginTop: 36 }}>
-      <div className="blob" style={{ marginBottom: 12 }}>
-        <svg width="72" height="72" viewBox="0 0 72 72" style={{ margin: "0 auto" }}>
-          <circle cx="36" cy="36" r="28" fill="var(--pink)" />
-          <ellipse cx="28" cy="32" rx="3" ry="6" fill="var(--ink)" /><ellipse cx="44" cy="32" rx="3" ry="6" fill="var(--ink)" />
-          <path d="M28 46 Q36 52 44 46" stroke="var(--ink)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        </svg>
+    <div style={{ position: "relative", height: "calc(100dvh - 66px)", scrollSnapAlign: "start", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <video src={item.video_url} controls playsInline loop style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
+
+      {/* gradient + info overlay */}
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "60px 18px 22px", background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)", pointerEvents: "none" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ pointerEvents: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{c.full_name}</span>
+              {c.instagram_connected && <span style={{ background: "#fff", color: "#173404", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10 }}>✓</span>}
+            </div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", fontWeight: 600, marginTop: 3 }}>
+              📍 {c.city || "India"} · {c.niche}
+            </div>
+            {c.instagram_connected && c.followers != null && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: 2 }}>{fmtFollowers(c.followers)} followers · {inr(c.rate_per_post)}/post</div>
+            )}
+          </div>
+          <button onClick={() => router.push("/app/creator/" + c.id)} className="pressable" style={{ pointerEvents: "auto", background: "var(--coral)", color: "#4A1B0C", border: "none", borderRadius: 26, padding: "13px 26px", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+            Hire →
+          </button>
+        </div>
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{hasAny ? "No matches" : "No creators yet"}</div>
-      <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, marginTop: 4 }}>{hasAny ? "Try a different filter." : "As creators join HypePanda, they'll appear here."}</div>
     </div>
   );
 }
 
-function Pill({ label, active, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      flexShrink: 0, padding: "9px 16px", borderRadius: 20, fontSize: 14, fontWeight: 700,
-      border: active ? "2px solid var(--ink)" : "2px solid #e8dfcc",
-      background: active ? "var(--ink)" : "#fff", color: active ? "#fff" : "var(--ink)",
-    }}>{label}</button>
-  );
-}
 
 function Stat({ big, small }) {
   return (
