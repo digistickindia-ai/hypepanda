@@ -199,8 +199,8 @@ function Stat({ big, small }) {
 
 function Shell({ children }) {
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ flex: 1, padding: "28px 22px 20px" }}>{children}</div>
+    <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ flex: 1, padding: "28px 22px 20px", overflowY: "auto" }}>{children}</div>
       <TabBar />
     </div>
   );

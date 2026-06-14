@@ -17,8 +17,7 @@ export default function TabBar() {
   return (
     <nav
       style={{
-        position: "sticky",
-        bottom: 0,
+        flexShrink: 0,
         background: "#fff",
         borderTop: "1.5px solid #efe7d6",
         display: "flex",

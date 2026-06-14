@@ -67,8 +67,8 @@ function ProfileInner() {
   const initials = (p.full_name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ flex: 1, padding: "24px 18px 20px" }}>
+    <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ flex: 1, padding: "24px 18px 20px", overflowY: "auto" }}>
 
         {igMsg && <div style={{ background: "var(--green)", color: "#173404", borderRadius: 16, padding: "12px 16px", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>{igMsg}</div>}
 

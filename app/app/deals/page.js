@@ -41,8 +41,8 @@ export default function Deals() {
   })(); }, []);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ flex: 1, padding: "28px 22px 20px" }}>
+    <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ flex: 1, padding: "28px 22px 20px", overflowY: "auto" }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "0 0 20px" }}>Deals</h1>
 
         {loading ? (
