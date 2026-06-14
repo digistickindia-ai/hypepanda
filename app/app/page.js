@@ -1,13 +1,18 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
-export default function SignInPage() {
+function SignInInner() {
+  const params = useSearchParams();
+  const role = params.get("role") || "creator";
+
   const signInWithGoogle = async () => {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/app/home` },
+      options: { redirectTo: `${window.location.origin}/app/home?role=${role}` },
     });
     if (error) alert("Sign-in error: " + error.message);
   };
@@ -91,5 +96,13 @@ export default function SignInPage() {
 
       </div>
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<main style={{ minHeight: "100dvh", background: "var(--cream)" }} />}>
+      <SignInInner />
+    </Suspense>
   );
 }

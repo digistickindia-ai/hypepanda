@@ -1,18 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 import { loadMe, inr, fmtFollowers, NICHES } from "@/lib/me";
 import TabBar from "../TabBar";
 
-export default function Home() {
+function HomeInner() {
   const router = useRouter();
+  const params = useSearchParams();
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { (async () => {
-    const res = await loadMe(router);
-    if (res) { setMe(res); setLoading(false); }
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.replace("/app"); return; }
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    if (!profile || !profile.onboarding_done) {
+      const role = params.get("role") || "creator";
+      router.replace("/app/onboarding?role=" + role);
+      return;
+    }
+    setMe({ user, profile, supabase });
+    setLoading(false);
   })(); }, []);
 
   if (loading) return <Loader />;
@@ -20,6 +31,14 @@ export default function Home() {
   return me.profile.role === "creator"
     ? <CreatorHome me={me} router={router} />
     : <BusinessHome me={me} router={router} />;
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <HomeInner />
+    </Suspense>
+  );
 }
 
 function Loader() {
