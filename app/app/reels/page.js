@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { loadMe, inr, fmtFollowers } from "@/lib/me";
 import Panda from "../../Panda";
@@ -36,15 +36,16 @@ export default function Reels() {
   const isBusiness = me.profile.role !== "creator";
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+    <div style={{ height: "100dvh", background: "#000", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", overflow: "hidden" }}>
+      <style>{`.reelscroll::-webkit-scrollbar{display:none}`}</style>
       {items.length === 0 ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, textAlign: "center" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, textAlign: "center", background: "var(--cream)" }}>
           <Panda size={90} />
           <div style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", marginTop: 12 }}>No reels yet</div>
           <div style={{ fontSize: 14, color: "var(--muted)", fontWeight: 500, marginTop: 4 }}>Approved creator reels show up here to discover.</div>
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: "auto", scrollSnapType: "y mandatory" }}>
+        <div className="reelscroll" style={{ flex: 1, overflowY: "auto", scrollSnapType: "y mandatory", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
           {items.map((item) => (
             <ReelCard key={item.id} item={item} router={router} isBusiness={isBusiness} />
           ))}
@@ -57,10 +58,30 @@ export default function Reels() {
 
 function ReelCard({ item, router, isBusiness }) {
   const c = item.creator;
+  const ref = useRef(null);
+  const vidRef = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current, vid = vidRef.current;
+    if (!el || !vid) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      },
+      { threshold: [0, 0.6, 1] }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div style={{ position: "relative", height: "calc(100dvh - 70px)", scrollSnapAlign: "start", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <video src={item.video_url} controls playsInline loop style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "60px 18px 22px", background: "linear-gradient(to top, rgba(0,0,0,0.78), transparent)", pointerEvents: "none" }}>
+    <div ref={ref} style={{ position: "relative", height: "calc(100dvh - 71px)", scrollSnapAlign: "start", scrollSnapStop: "always", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <video ref={vidRef} src={item.video_url} playsInline loop muted controls style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "60px 18px 22px", background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)", pointerEvents: "none" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
           <div style={{ pointerEvents: "auto", flex: 1, minWidth: 0 }} onClick={() => router.push("/app/creator/" + c.id)}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
