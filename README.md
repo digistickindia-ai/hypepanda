@@ -2,7 +2,10 @@
 
 The playful influencer marketplace. Cream + multicolor blobs, panda mascot.
 
-This folder is a complete Next.js app. Screen 1 (Welcome / Sign-in) is built.
+This folder is a complete Next.js app.
+
+- `/`     -> Public landing page (hero, Creator/Business/Agency router, trust section)
+- `/app`  -> Sign-in screen ("app mode") — where people land after tapping a router card
 
 ---
 
