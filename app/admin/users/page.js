@@ -30,6 +30,18 @@ export default function AdminUsers() {
     await load(supabase);
     setBusy(null);
   };
+  const togglePro = async (u) => {
+    setBusy(u.id);
+    const active = u.is_pro && u.pro_until && new Date(u.pro_until).getTime() > Date.now();
+    if (active) {
+      await supabase.from("profiles").update({ is_pro: false, pro_until: null }).eq("id", u.id);
+    } else {
+      const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("profiles").update({ is_pro: true, pro_until: until }).eq("id", u.id);
+    }
+    await load(supabase);
+    setBusy(null);
+  };
 
   if (loading) return <AdminShell><p style={{ color: "var(--muted)", fontWeight: 600 }}>Loading…</p></AdminShell>;
 
@@ -62,6 +74,7 @@ export default function AdminUsers() {
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>
                   {u.full_name || "—"}
                   {u.is_admin && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "var(--coral)" }}>ADMIN</span>}
+                  {u.is_pro && u.pro_until && new Date(u.pro_until).getTime() > Date.now() && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#854F0B" }}>★ PRO</span>}
                   {u.suspended && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#A32D2D" }}>SUSPENDED</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>
@@ -72,10 +85,15 @@ export default function AdminUsers() {
                   {isCreator && (u.instagram_connected ? `✓ ${fmtFollowers(u.followers)} followers · ${inr(u.rate_per_post)}/post` : "not verified")}
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {isCreator && (
                   <button onClick={() => toggleVerify(u)} disabled={busy === u.id} style={btn(u.instagram_connected ? "#fff" : "var(--green)", u.instagram_connected ? "var(--ink)" : "#173404", u.instagram_connected)}>
                     {u.instagram_connected ? "Unverify" : "Verify"}
+                  </button>
+                )}
+                {isCreator && (
+                  <button onClick={() => togglePro(u)} disabled={busy === u.id} style={btn((u.is_pro && u.pro_until && new Date(u.pro_until).getTime() > Date.now()) ? "#fff" : "var(--yellow)", "#412402", true)}>
+                    {(u.is_pro && u.pro_until && new Date(u.pro_until).getTime() > Date.now()) ? "Remove Pro" : "Grant Pro"}
                   </button>
                 )}
                 {!u.is_admin && (

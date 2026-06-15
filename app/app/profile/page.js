@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loadMe, inr, fmtFollowers } from "@/lib/me";
+import { loadMe, inr, fmtFollowers, isProActive } from "@/lib/me";
 import { uploadPhoto, MAX_PHOTO_MB } from "@/lib/storage";
 import Panda from "../../Panda";
 import TabBar from "../TabBar";
@@ -15,6 +15,7 @@ function ProfileInner() {
   const [igMsg, setIgMsg] = useState("");
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [viewCount, setViewCount] = useState(0);
   const [tab, setTab] = useState("photos");
   const [uploading, setUploading] = useState(false);
 
@@ -31,6 +32,8 @@ function ProfileInner() {
         setPhotos(ph || []);
         const { data: vd } = await res.supabase.from("portfolio").select("*").eq("creator_id", res.profile.id).order("created_at", { ascending: false });
         setVideos(vd || []);
+        const { count } = await res.supabase.from("profile_views_log").select("*", { count: "exact", head: true }).eq("creator_id", res.profile.id);
+        setViewCount(count || 0);
       }
       setLoading(false);
     })();
@@ -80,6 +83,7 @@ function ProfileInner() {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
               {p.full_name}
+              {isCreator && isProActive(p) && <span style={{ background: "var(--yellow)", color: "#412402", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 10 }}>★ PRO</span>}
               {isCreator && p.instagram_connected && <span style={{ background: "#173404", color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 10 }}>✓</span>}
             </div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>
@@ -97,11 +101,35 @@ function ProfileInner() {
           </div>
         )}
 
+        {/* Pro analytics */}
+        {isCreator && (
+          <div onClick={() => !isProActive(p) && router.push("/app/pro")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: "14px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: isProActive(p) ? "default" : "pointer" }}>
+            <div>
+              <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>📊 Profile views</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", filter: isProActive(p) ? "none" : "blur(7px)", userSelect: "none" }}>{isProActive(p) ? viewCount : "42"}</div>
+            </div>
+            {!isProActive(p) && <span style={{ background: "var(--ink)", color: "#fff", fontSize: 12, fontWeight: 800, padding: "8px 14px", borderRadius: 12 }}>Go Pro to see</span>}
+          </div>
+        )}
+
         {/* IG verify button */}
         {isCreator && !p.instagram_connected && (
           <a href="/api/instagram/connect" className="pressable" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#E1306C", color: "#fff", borderRadius: 18, padding: "13px", fontSize: 14, fontWeight: 800, textDecoration: "none", marginBottom: 16 }}>
             ◎ Verify with Instagram
           </a>
+        )}
+
+        {/* Go Pro upsell */}
+        {isCreator && (
+          isProActive(p) ? (
+            <button onClick={() => router.push("/app/pro")} className="pressable" style={{ width: "100%", background: "var(--yellow)", color: "#412402", border: "none", borderRadius: 16, padding: "13px", fontSize: 14, fontWeight: 800, marginBottom: 10 }}>
+              ★ You're Pro · view perks
+            </button>
+          ) : (
+            <button onClick={() => router.push("/app/pro")} className="pressable" style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 16, padding: "13px", fontSize: 14, fontWeight: 800, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              🐼 Go Pro — get featured & pay less
+            </button>
+          )
         )}
 
         {/* Admin / actions */}

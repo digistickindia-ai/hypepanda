@@ -25,6 +25,8 @@ export default function Reels() {
       (profs || []).forEach((p) => { creators[p.id] = p; });
     }
     const feed = list.map((v) => ({ ...v, creator: creators[v.creator_id] })).filter((v) => v.creator && !v.creator.suspended);
+    const proActive = (c) => c.is_pro && c.pro_until && new Date(c.pro_until).getTime() > Date.now();
+    feed.sort((a, b) => (proActive(b.creator) ? 1 : 0) - (proActive(a.creator) ? 1 : 0));
     setItems(feed);
     setLoading(false);
   })(); }, []);

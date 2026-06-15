@@ -220,3 +220,37 @@ WHAT CHANGED IN v2:
 NOTE: the business feed shows creators who have at least one APPROVED video.
 So to see anyone in the feed, that creator must upload a reel AND you approve
 it in Admin -> Showcase.
+
+=========================================================
+8. CREATOR PRO SUBSCRIPTION
+=========================================================
+Run pro-patch.sql in Supabase SQL Editor (adds Pro fields + analytics tables).
+
+WHAT IT IS:
+A "Go Pro" plan for creators — ₹499 for a 30-day pass, paid via Cashfree
+(one-time payment, NOT auto-renew yet). Creators re-pay to extend.
+
+PRO PERKS (auto-applied while pass is active):
+- Featured: Pro creators sort first in brand search AND in the Reels feed
+- ★ PRO badge on profile + creator cards (cards get a gold border)
+- Half commission: Pro creators' deals are 5% instead of 10%
+- Profile analytics: real "profile views" count (free creators see it blurred)
+- More reels: upload up to 6 showcase videos instead of 3
+- Priority ranking everywhere
+
+HOW CREATORS UPGRADE:
+Profile -> "Go Pro" button -> /app/pro -> pays via Cashfree -> Pro activates
+for 30 days automatically (via /api/pro-webhook).
+
+ADMIN:
+- Admin -> Users: "Grant Pro" / "Remove Pro" button on each creator (gives a
+  free 30-day pass — useful for comps, testing, or influencer deals).
+- Admin -> Overview now shows Pro revenue + active Pro creator count.
+
+REQUIRES: Cashfree keys in Vercel (same ones as deal payments:
+CASHFREE_APP_ID, CASHFREE_SECRET_KEY, CASHFREE_MODE). Until those are set,
+the Go Pro button will say keys aren't configured.
+
+LATER (true auto-renew): when Cashfree Subscriptions / UPI AutoPay is approved
+on your account, we swap the one-time order in /api/pro-pay for a recurring
+mandate. Everything else (perks, gating, UI) stays the same.

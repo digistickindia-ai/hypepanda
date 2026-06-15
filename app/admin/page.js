@@ -10,18 +10,21 @@ export default function AdminOverview() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => { if (!supabase) return; (async () => {
-    const { data: profiles } = await supabase.from("profiles").select("role, onboarding_done, suspended");
+    const { data: profiles } = await supabase.from("profiles").select("role, onboarding_done, suspended, is_pro, pro_until");
     const { data: deals } = await supabase.from("deals").select("amount, status, payment_status, commission_pct");
+    const { data: proPayments } = await supabase.from("pro_payments").select("amount, status");
     const p = profiles || [], d = deals || [];
 
     const creators = p.filter((x) => x.role === "creator").length;
     const businesses = p.filter((x) => x.role === "business" || x.role === "agency").length;
+    const proActive = p.filter((x) => x.is_pro && x.pro_until && new Date(x.pro_until).getTime() > Date.now()).length;
+    const proRevenue = (proPayments || []).filter((x) => x.status === "paid").reduce((s, x) => s + (x.amount || 0), 0);
     const held = d.filter((x) => x.payment_status === "secured").reduce((s, x) => s + (x.amount || 0), 0);
     const earned = d.filter((x) => x.payment_status === "paid_out").reduce((s, x) => s + commissionAmount(x.amount, x.commission_pct || 10), 0);
     const gmv = d.filter((x) => x.payment_status !== "unpaid").reduce((s, x) => s + (x.amount || 0), 0);
 
     setStats({
-      users: p.length, creators, businesses,
+      users: p.length, creators, businesses, proActive, proRevenue,
       deals: d.length,
       activeDeals: d.filter((x) => ["accepted", "in_progress", "delivered"].includes(x.status)).length,
       completed: d.filter((x) => x.status === "completed").length,
@@ -46,7 +49,9 @@ export default function AdminOverview() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 14, marginBottom: 24 }}>
         <Card label="GMV (total transacted)" value={inr(stats.gmv)} color="var(--ink)" />
         <Card label="Held by you now" value={inr(stats.held)} color="var(--blue)" />
-        <Card label="Your earnings" value={inr(stats.earned)} color="var(--green)" />
+        <Card label="Deal earnings" value={inr(stats.earned)} color="var(--green)" />
+        <Card label="Pro revenue" value={inr(stats.proRevenue)} color="var(--yellow)" dark />
+        <Card label="Active Pro creators" value={stats.proActive} color="#854F0B" />
       </div>
 
       <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", margin: "0 0 12px" }}>Deals</h2>

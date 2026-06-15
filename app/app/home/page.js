@@ -120,7 +120,10 @@ function BusinessHome({ me, router }) {
 
   useEffect(() => { (async () => {
     const { data } = await me.supabase.from("profiles").select("*").eq("role", "creator").eq("onboarding_done", true).order("created_at", { ascending: false });
-    setCreators((data || []).filter((c) => !c.suspended));
+    const list = (data || []).filter((c) => !c.suspended);
+    const proActive = (c) => c.is_pro && c.pro_until && new Date(c.pro_until).getTime() > Date.now();
+    list.sort((a, b) => (proActive(b) ? 1 : 0) - (proActive(a) ? 1 : 0));
+    setCreators(list);
     setLoading(false);
   })(); }, []);
 
@@ -158,10 +161,12 @@ function CreatorCard({ c, onClick }) {
   const colors = ["var(--coral)", "var(--blue)", "var(--pink)", "var(--yellow)", "var(--green)"];
   const col = colors[(c.full_name || "x").charCodeAt(0) % colors.length];
   const initials = (c.full_name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const proActive = c.is_pro && c.pro_until && new Date(c.pro_until).getTime() > Date.now();
   return (
-    <div onClick={onClick} className="pressable" style={{ background: "#fff", borderRadius: 20, padding: 14, border: "1.5px solid #efe7d6", cursor: "pointer" }}>
+    <div onClick={onClick} className="pressable" style={{ background: "#fff", borderRadius: 20, padding: 14, border: proActive ? "2px solid var(--yellow)" : "1.5px solid #efe7d6", cursor: "pointer" }}>
       <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
         <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>
+        {proActive && <span style={{ position: "absolute", top: 8, left: 8, background: "var(--yellow)", borderRadius: 10, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: "#412402" }}>★ PRO</span>}
         {c.instagram_connected && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 800, color: "#173404" }}>✓</span>}
       </div>
       <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>

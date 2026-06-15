@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { loadMe, inr, fmtFollowers, payout, commissionAmount, DEFAULT_COMMISSION } from "@/lib/me";
+import { loadMe, inr, fmtFollowers, payout, commissionAmount, commissionFor, isProActive, DEFAULT_COMMISSION } from "@/lib/me";
 
 export default function CreatorDetail() {
   const router = useRouter();
@@ -22,6 +22,10 @@ export default function CreatorDetail() {
     const { data: vids } = await res.supabase.from("portfolio").select("*").eq("creator_id", id).eq("status", "approved").order("created_at");
     setVideos(vids || []);
     setLoading(false);
+    // Log a profile view (only when a business views someone else's profile)
+    if (res.profile.role !== "creator" && res.profile.id !== id) {
+      res.supabase.from("profile_views_log").insert({ creator_id: id, viewer_id: res.profile.id }).then(() => {});
+    }
   })(); }, []);
 
   if (loading) return <main style={{ minHeight: "100dvh", background: "var(--cream)" }} />;
@@ -96,8 +100,9 @@ function OfferModal({ me, creator, onClose, router }) {
   const [sending, setSending] = useState(false);
 
   const gross = Number(amount) || 0;
-  const creatorGets = payout(gross);
-  const fee = commissionAmount(gross);
+  const pct = commissionFor(creator);
+  const creatorGets = payout(gross, pct);
+  const fee = commissionAmount(gross, pct);
 
   const send = async () => {
     if (!title.trim() || !amount) return;
@@ -105,7 +110,7 @@ function OfferModal({ me, creator, onClose, router }) {
     const { data: deal, error } = await me.supabase.from("deals").insert({
       business_id: me.profile.id, creator_id: creator.id,
       title: title.trim(), brief: brief.trim(), amount: gross,
-      commission_pct: DEFAULT_COMMISSION, payout_amount: creatorGets,
+      commission_pct: pct, payout_amount: creatorGets,
       status: "pending",
     }).select().single();
     if (error) { setSending(false); alert("Couldn't send: " + error.message); return; }
@@ -134,7 +139,7 @@ function OfferModal({ me, creator, onClose, router }) {
         {gross > 0 && (
           <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: 14, marginBottom: 14 }}>
             <Row label="You pay" value={inr(gross)} />
-            <Row label={"HypePanda fee (" + DEFAULT_COMMISSION + "%)"} value={"− " + inr(fee)} muted />
+            <Row label={"HypePanda fee (" + pct + "%)"} value={"− " + inr(fee)} muted />
             <div style={{ borderTop: "1.5px solid #f4eede", marginTop: 8, paddingTop: 8 }}>
               <Row label="Creator receives" value={inr(creatorGets)} bold />
             </div>

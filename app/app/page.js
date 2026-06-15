@@ -4,20 +4,16 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
-const TILES = [
-  ["#F47B6F", "AK"], ["#5BA9E8", "MR"], ["#7BC47F", "PJ"], ["#F4C542", "SK"],
-  ["#E86FA6", "RD"], ["#7B6CD9", "VN"], ["#F47B6F", "TM"], ["#5BA9E8", "AS"],
-  ["#7BC47F", "KL"], ["#F4C542", "NB"], ["#E86FA6", "JD"], ["#7B6CD9", "MC"],
-];
+const FACES = Array.from({ length: 17 }, (_, i) => `/faces/c${i + 1}.jpg`);
 
-function Column({ tiles, dur, reverse }) {
-  const doubled = [...tiles, ...tiles];
+function Column({ imgs, dur, reverse }) {
+  const doubled = [...imgs, ...imgs];
   return (
     <div style={{ flex: 1, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, animation: `scroll${reverse ? "Down" : "Up"} ${dur}s linear infinite` }}>
-        {doubled.map((t, i) => (
-          <div key={i} style={{ width: "100%", aspectRatio: "3/4", borderRadius: 16, background: t[0], display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 26, fontWeight: 800, color: "#fff", opacity: 0.85 }}>{t[1]}</span>
+        {doubled.map((src, i) => (
+          <div key={i} style={{ width: "100%", aspectRatio: "3/4", borderRadius: 16, overflow: "hidden", background: "#e8dfcc", flexShrink: 0 }}>
+            <img src={src} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         ))}
       </div>
@@ -48,9 +44,9 @@ function SignInInner() {
 
         {/* Scrolling photo wall */}
         <div style={{ position: "absolute", inset: 0, display: "flex", gap: 10, padding: "0 12px", opacity: 0.9 }}>
-          <Column tiles={TILES.slice(0, 4)} dur={22} />
-          <Column tiles={TILES.slice(4, 8)} dur={28} reverse />
-          <Column tiles={TILES.slice(8, 12)} dur={25} />
+          <Column imgs={FACES.slice(0, 6)} dur={26} />
+          <Column imgs={FACES.slice(6, 12)} dur={32} reverse />
+          <Column imgs={FACES.slice(11, 17)} dur={29} />
         </div>
 
         {/* Cream fade over lower half so text is readable */}

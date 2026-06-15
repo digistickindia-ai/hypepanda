@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { uploadVideo, MAX_VIDEO_MB } from "@/lib/storage";
+import { isProActive, FREE_REELS, PRO_REELS } from "@/lib/me";
 
 const MIN_VIDEOS = 2;
-const MAX_VIDEOS = 3;
 
 export default function Showcase() {
   const router = useRouter();
@@ -16,14 +16,19 @@ export default function Showcase() {
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
   const [finishing, setFinishing] = useState(false);
+  const [maxVideos, setMaxVideos] = useState(FREE_REELS);
 
   useEffect(() => { (async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.replace("/app"); return; }
     setUser(user);
+    const { data: prof } = await supabase.from("profiles").select("is_pro, pro_until").eq("id", user.id).single();
+    setMaxVideos(isProActive(prof) ? PRO_REELS : FREE_REELS);
     const { data } = await supabase.from("portfolio").select("*").eq("creator_id", user.id).order("created_at");
     setVideos(data || []);
   })(); }, []);
+
+  const MAX_VIDEOS = maxVideos;
 
   const onPick = async (e) => {
     const file = e.target.files?.[0];
