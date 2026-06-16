@@ -134,7 +134,7 @@ function DealActions({ deal, isCreator, busy, updateStatus, payNow }) {
 
   // CREATOR: pending offer -> accept/decline
   if (isCreator && deal.status === "pending")
-    return <Bar><span style={{ fontSize: 14, fontWeight: 700, color: "#412402" }}>New offer!</span><Btn label="Decline" onClick={() => updateStatus({ status: "declined" }, "Offer declined")} /><Btn dark label="Accept ✓" onClick={() => updateStatus({ status: "accepted" }, "Your offer was accepted!")} /></Bar>;
+    return <Bar><span style={{ fontSize: 14, fontWeight: 700, color: "#412402" }}>New offer!</span><Btn label="Decline" onClick={() => updateStatus({ status: "declined" }, "Offer declined")} /><Btn dark label="Accept" onClick={() => updateStatus({ status: "accepted" }, "Your offer was accepted!")} /></Bar>;
 
   // BUSINESS: accepted -> pay
   if (!isCreator && deal.status === "accepted" && deal.payment_status === "unpaid")
@@ -142,18 +142,18 @@ function DealActions({ deal, isCreator, busy, updateStatus, payNow }) {
 
   // CREATOR: payment secured -> mark delivered
   if (isCreator && deal.payment_status === "secured" && deal.status !== "delivered" && deal.status !== "completed")
-    return <Bar bg="var(--blue)"><span style={{ fontSize: 14, fontWeight: 700, color: "#042C53" }}>💰 Payment secured. Create, then mark delivered.</span><Btn dark label="Mark delivered" onClick={() => updateStatus({ status: "delivered" }, "Creator marked the work delivered")} /></Bar>;
+    return <Bar bg="var(--blue)"><span style={{ fontSize: 14, fontWeight: 700, color: "#042C53" }}>Payment secured. Create, then mark delivered.</span><Btn dark label="Mark delivered" onClick={() => updateStatus({ status: "delivered" }, "Creator marked the work delivered")} /></Bar>;
 
   // BUSINESS: delivered -> approve (HypePanda then pays out)
   if (!isCreator && deal.status === "delivered" && deal.payment_status === "secured")
-    return <Bar bg="var(--pink)"><span style={{ fontSize: 14, fontWeight: 700, color: "#4B1528" }}>Delivered! Approve to release payout.</span><Btn dark label="Approve work ✓" onClick={() => updateStatus({ status: "completed" }, "Work approved — your payout is being released")} /></Bar>;
+    return <Bar bg="var(--pink)"><span style={{ fontSize: 14, fontWeight: 700, color: "#4B1528" }}>Delivered! Approve to release payout.</span><Btn dark label="Approve work" onClick={() => updateStatus({ status: "completed" }, "Work approved — your payout is being released")} /></Bar>;
 
   // payout pending (approved, HypePanda paying out)
   if (deal.status === "completed" && deal.payment_status === "secured")
-    return <Bar bg="var(--yellow)"><span style={{ fontSize: 14, fontWeight: 700, color: "#412402" }}>{isCreator ? "✓ Approved! Payment releasing soon." : "✓ Approved — HypePanda is paying the creator."}</span></Bar>;
+    return <Bar bg="var(--yellow)"><span style={{ fontSize: 14, fontWeight: 700, color: "#412402" }}>{isCreator ? "Approved! Payment releasing soon." : "Approved — HypePanda is paying the creator."}</span></Bar>;
 
   if (deal.payment_status === "paid_out")
-    return <Bar bg="var(--green)"><span style={{ fontSize: 14, fontWeight: 800, color: "#173404" }}>{isCreator ? "🎉 Paid out to you!" : "✓ Deal complete — creator paid"}</span></Bar>;
+    return <Bar bg="var(--green)"><span style={{ fontSize: 14, fontWeight: 800, color: "#173404" }}>{isCreator ? "Paid out to you!" : "Deal complete — creator paid"}</span></Bar>;
   if (deal.status === "declined")
     return <Bar bg="#e0d8c8"><span style={{ fontSize: 14, fontWeight: 700, color: "var(--muted)" }}>This offer was declined</span></Bar>;
 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { loadMe, inr, fmtFollowers, isProActive } from "@/lib/me";
 import { uploadPhoto, MAX_PHOTO_MB } from "@/lib/storage";
 import Panda from "../../Panda";
+import Icon from "../../Icon";
 import TabBar from "../TabBar";
 
 function ProfileInner() {
@@ -83,8 +84,8 @@ function ProfileInner() {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
               {p.full_name}
-              {isCreator && isProActive(p) && <span style={{ background: "var(--yellow)", color: "#412402", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 10 }}>★ PRO</span>}
-              {isCreator && p.instagram_connected && <span style={{ background: "#173404", color: "#fff", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 10 }}>✓</span>}
+              {isCreator && isProActive(p) && <span style={{ background: "var(--yellow)", borderRadius: 10, padding: "3px 7px", display: "inline-flex", alignItems: "center", gap: 3 }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /><span style={{ fontSize: 10, fontWeight: 800, color: "#412402" }}>PRO</span></span>}
+              {isCreator && p.instagram_connected && <span style={{ background: "#173404", borderRadius: 10, padding: "3px 6px", display: "inline-flex", alignItems: "center" }}><Icon name="check" size={11} color="#fff" strokeWidth={3} /></span>}
             </div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>
               {isCreator ? "@" + p.instagram_handle : p.company_name} · {p.city}
@@ -105,7 +106,7 @@ function ProfileInner() {
         {isCreator && (
           <div onClick={() => !isProActive(p) && router.push("/app/pro")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: "14px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: isProActive(p) ? "default" : "pointer" }}>
             <div>
-              <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>📊 Profile views</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><Icon name="chart" size={15} color="var(--muted)" /> Profile views</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", filter: isProActive(p) ? "none" : "blur(7px)", userSelect: "none" }}>{isProActive(p) ? viewCount : "42"}</div>
             </div>
             {!isProActive(p) && <span style={{ background: "var(--ink)", color: "#fff", fontSize: 12, fontWeight: 800, padding: "8px 14px", borderRadius: 12 }}>Go Pro to see</span>}
@@ -115,7 +116,7 @@ function ProfileInner() {
         {/* IG verify button */}
         {isCreator && !p.instagram_connected && (
           <a href="/api/instagram/connect" className="pressable" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#E1306C", color: "#fff", borderRadius: 18, padding: "13px", fontSize: 14, fontWeight: 800, textDecoration: "none", marginBottom: 16 }}>
-            ◎ Verify with Instagram
+            Verify with Instagram
           </a>
         )}
 
@@ -123,11 +124,11 @@ function ProfileInner() {
         {isCreator && (
           isProActive(p) ? (
             <button onClick={() => router.push("/app/pro")} className="pressable" style={{ width: "100%", background: "var(--yellow)", color: "#412402", border: "none", borderRadius: 16, padding: "13px", fontSize: 14, fontWeight: 800, marginBottom: 10 }}>
-              ★ You're Pro · view perks
+              You're Pro · view perks
             </button>
           ) : (
             <button onClick={() => router.push("/app/pro")} className="pressable" style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 16, padding: "13px", fontSize: 14, fontWeight: 800, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              🐼 Go Pro — get featured & pay less
+              Go Pro — get featured & pay less
             </button>
           )
         )}
@@ -163,7 +164,7 @@ function ProfileInner() {
                   <div key={v.id} style={{ background: "#fff", borderRadius: 16, padding: 10, border: "1.5px solid #efe7d6" }}>
                     <video src={v.video_url} controls playsInline style={{ width: "100%", borderRadius: 10, background: "#000", maxHeight: 220 }} />
                     <div style={{ marginTop: 6, fontSize: 12, fontWeight: 700 }}>
-                      {v.status === "approved" && <span style={{ color: "#173404" }}>✓ Live</span>}
+                      {v.status === "approved" && <span style={{ color: "#173404" }}>Live</span>}
                       {v.status === "pending" && <span style={{ color: "#854F0B" }}>⏳ Pending review</span>}
                       {v.status === "rejected" && <span style={{ color: "#A32D2D" }}>✕ Rejected</span>}
                     </div>

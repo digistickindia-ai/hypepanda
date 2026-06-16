@@ -92,7 +92,7 @@ export default function Showcase() {
             <div key={v.id} style={{ background: "#fff", borderRadius: 18, padding: 12, border: "1.5px solid #efe7d6" }}>
               <video src={v.video_url} controls style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 220 }} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--amber)", background: "#FAEEDA", padding: "4px 10px", borderRadius: 10, color: "#854F0B" }}>⏳ Pending review</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--amber)", background: "#FAEEDA", padding: "4px 10px", borderRadius: 10, color: "#854F0B" }}>Pending review</span>
                 <button onClick={() => remove(v)} style={{ fontSize: 13, fontWeight: 700, color: "#A32D2D" }}>Remove</button>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function Showcase() {
         {videos.length < MAX_VIDEOS && (
           <label style={{ display: "block", textAlign: "center", background: "#fff", border: "2.5px dashed #d8cfbc", borderRadius: 18, padding: "28px 20px", cursor: uploading ? "default" : "pointer", marginBottom: 8 }}>
             <input type="file" accept="video/*" onChange={onPick} disabled={uploading} style={{ display: "none" }} />
-            <div style={{ fontSize: 32, marginBottom: 6 }}>{uploading ? "⏳" : "🎬"}</div>
+            <div style={{ fontSize: 32, marginBottom: 6 }}>{uploading ? "..." : ""}</div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{uploading ? "Uploading…" : "Tap to add a video"}</div>
             <div style={{ fontSize: 12, color: "var(--faint)", fontWeight: 600, marginTop: 4 }}>Under {MAX_VIDEO_MB} MB · mp4, mov</div>
           </label>
@@ -115,7 +115,7 @@ export default function Showcase() {
         <button className="pressable" disabled={!enough || finishing || uploading} onClick={finish} style={{
           width: "100%", background: enough ? "var(--ink)" : "#d8cfbc", color: "#fff", border: "none",
           borderRadius: 32, padding: "17px", fontSize: 17, fontWeight: 800, cursor: enough ? "pointer" : "default",
-        }}>{finishing ? "Finishing…" : enough ? "Finish 🎉" : `Add ${MIN_VIDEOS - videos.length} more`}</button>
+        }}>{finishing ? "Finishing…" : enough ? "Finish" : `Add ${MIN_VIDEOS - videos.length} more`}</button>
       </div>
     </main>
   );

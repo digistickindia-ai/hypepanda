@@ -63,7 +63,7 @@ export default function Deals() {
                 <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>{isCreator ? "From" : "To"} {otherName}</div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
                   <span style={{ fontSize: 18, fontWeight: 800, color: "var(--coral)" }}>{inr(d.amount)}</span>
-                  {d.payment_status === "secured" && <span style={{ fontSize: 12, fontWeight: 700, color: "#185FA5" }}>💰 Payment secured</span>}
+                  {d.payment_status === "secured" && <span style={{ fontSize: 12, fontWeight: 700, color: "#185FA5" }}>Payment secured</span>}
                   {d.payment_status === "paid_out" && <span style={{ fontSize: 12, fontWeight: 700, color: "#3B6D11" }}>✓ Paid out</span>}
                 </div>
               </div>

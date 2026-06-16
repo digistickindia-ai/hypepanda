@@ -48,7 +48,7 @@ export default function CreatorDetail() {
           <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{creator.full_name}</div>
           <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>@{creator.instagram_handle} · {creator.city}</div>
           {creator.instagram_connected
-            ? <span style={{ display: "inline-block", marginTop: 12, background: "#fff", color: "#173404", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 14 }}>✓ Verified creator</span>
+            ? <span style={{ display: "inline-block", marginTop: 12, background: "#fff", color: "#173404", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 14 }}>Verified creator</span>
             : <span style={{ display: "inline-block", marginTop: 12, background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 14 }}>Not yet verified</span>}
         </div>
 
@@ -67,7 +67,7 @@ export default function CreatorDetail() {
 
         {videos.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 10 }}>Best work 🎬</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--ink)", marginBottom: 10 }}>Best work</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {videos.map((v) => (
                 <div key={v.id} style={{ background: "#fff", borderRadius: 18, padding: 10, border: "1.5px solid #efe7d6" }}>

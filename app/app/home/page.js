@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { loadMe, inr, fmtFollowers, NICHES } from "@/lib/me";
 import Panda from "../../Panda";
+import Icon from "../../Icon";
 import TabBar from "../TabBar";
 
 function HomeInner() {
@@ -96,7 +97,7 @@ function CreatorHome({ me, router }) {
       {/* Greeting + earnings chip */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
         <div>
-          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first} 👋</p>
+          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first}</p>
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "2px 0 0" }}>Your panda HQ</h1>
         </div>
         <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right", flexShrink: 0 }}>
@@ -131,8 +132,11 @@ function CreatorHome({ me, router }) {
       {!pro && (
         <div onClick={() => router.push("/app/pro")} className="pressable" style={{ background: "var(--ink)", borderRadius: 22, padding: 18, marginBottom: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>🐼 Go Pro</div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>Get featured, pay 5% not 10%, see who viewed you.</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <Panda size={32} animate={false} />
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Go Pro</div>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.8)", marginTop: 6 }}>Get featured, pay 5% not 10%, see who viewed you.</div>
           </div>
           <span style={{ background: "var(--yellow)", color: "#412402", fontSize: 13, fontWeight: 800, padding: "8px 14px", borderRadius: 14, flexShrink: 0 }}>Upgrade</span>
         </div>
@@ -206,10 +210,10 @@ function CreatorHome({ me, router }) {
       {/* Tips */}
       <Section title="Tips to get hired">
         <Row>
-          <TipCard emoji="🎬" text="Post 2-3 strong reels — brands judge fast." />
-          <TipCard emoji="✓" text="Verify Instagram to show real follower counts." />
-          <TipCard emoji="⚡" text="Reply to offers quickly to win more deals." />
-          <TipCard emoji="🐼" text="Go Pro to appear first in search." />
+          <TipCard icon="film" text="Post 2-3 strong reels — brands judge fast." />
+          <TipCard icon="check" text="Verify Instagram to show real follower counts." />
+          <TipCard icon="bolt" text="Reply to offers quickly to win more deals." />
+          <TipCard icon="rocket" text="Go Pro to appear first in search." />
         </Row>
       </Section>
     </Shell>
@@ -242,10 +246,10 @@ function MiniCard({ top, title, sub, accent, onClick }) {
     </div>
   );
 }
-function TipCard({ emoji, text }) {
+function TipCard({ icon, text }) {
   return (
     <div style={{ width: 160, flexShrink: 0, background: "#fff", borderRadius: 16, border: "1.5px solid #efe7d6", padding: 14 }}>
-      <div style={{ fontSize: 24, marginBottom: 6 }}>{emoji}</div>
+      <div style={{ marginBottom: 8 }}><Icon name={icon} size={22} color="var(--coral)" /></div>
       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", lineHeight: 1.4 }}>{text}</div>
     </div>
   );
@@ -293,7 +297,7 @@ function BusinessHome({ me, router }) {
       {/* Greeting + active deals chip */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
         <div>
-          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first} 👋</p>
+          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first}</p>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "2px 0 0", lineHeight: 1.1 }}>{isAgency ? "Agency HQ" : "Find creators"}</h1>
         </div>
         <div onClick={() => router.push("/app/deals")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right", flexShrink: 0, cursor: "pointer" }}>
@@ -333,7 +337,7 @@ function BusinessHome({ me, router }) {
                     <div key={c.id} onClick={() => router.push("/app/creator/" + c.id)} className="pressable" style={{ width: 130, flexShrink: 0, background: "#fff", borderRadius: 16, border: proActive(c) ? "2px solid var(--yellow)" : "1.5px solid #efe7d6", padding: 12, cursor: "pointer" }}>
                       <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 12, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
                         <span style={{ fontSize: 26, fontWeight: 800, color: "#fff" }}>{initials}</span>
-                        {proActive(c) && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--yellow)", borderRadius: 8, padding: "1px 6px", fontSize: 9, fontWeight: 800, color: "#412402" }}>★</span>}
+                        {proActive(c) && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--yellow)", borderRadius: 8, padding: "2px 5px", display: "flex", alignItems: "center" }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /></span>}
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.niche}</div>
@@ -371,10 +375,10 @@ function BusinessHome({ me, router }) {
           {/* Tips */}
           <Section title={isAgency ? "Agency tips" : "Tips"}>
             <Row>
-              <TipCard emoji="🔍" text="Filter by niche to find the right creator fast." />
-              <TipCard emoji="🎬" text="Watch their reels before sending an offer." />
-              <TipCard emoji="✓" text="Verified creators show real follower counts." />
-              <TipCard emoji="💸" text="Payment is held safely until you approve the work." />
+              <TipCard icon="search" text="Filter by niche to find the right creator fast." />
+              <TipCard icon="film" text="Watch their reels before sending an offer." />
+              <TipCard icon="check" text="Verified creators show real follower counts." />
+              <TipCard icon="wallet" text="Payment is held safely until you approve the work." />
             </Row>
           </Section>
         </>
@@ -392,8 +396,8 @@ function CreatorCard({ c, onClick }) {
     <div onClick={onClick} className="pressable" style={{ background: "#fff", borderRadius: 20, padding: 14, border: proActive ? "2px solid var(--yellow)" : "1.5px solid #efe7d6", cursor: "pointer" }}>
       <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
         <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>
-        {proActive && <span style={{ position: "absolute", top: 8, left: 8, background: "var(--yellow)", borderRadius: 10, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: "#412402" }}>★ PRO</span>}
-        {c.instagram_connected && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 800, color: "#173404" }}>✓</span>}
+        {proActive && <span style={{ position: "absolute", top: 8, left: 8, background: "var(--yellow)", borderRadius: 10, padding: "3px 8px", display: "flex", alignItems: "center", gap: 3 }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /><span style={{ fontSize: 10, fontWeight: 800, color: "#412402" }}>PRO</span></span>}
+        {c.instagram_connected && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "3px 7px", display: "flex", alignItems: "center" }}><Icon name="check" size={12} color="#173404" strokeWidth={3} /></span>}
       </div>
       <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>{c.niche} · {c.city}</div>

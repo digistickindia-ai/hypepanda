@@ -159,7 +159,7 @@ function OnboardingInner() {
           border: "none", borderRadius: 32, padding: "17px", fontSize: 17, fontWeight: 800,
           marginTop: 20, cursor: canNext() ? "pointer" : "default",
         }}>
-          {saving ? "Saving..." : step === steps.length - 1 ? "Finish 🎉" : "Continue"}
+          {saving ? "Saving..." : step === steps.length - 1 ? "Finish" : "Continue"}
         </button>
       </div>
     </main>

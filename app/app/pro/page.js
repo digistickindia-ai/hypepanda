@@ -4,14 +4,15 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loadMe, inr, isProActive, PRO_PRICE, PRO_COMMISSION, DEFAULT_COMMISSION, PRO_REELS } from "@/lib/me";
 import Panda from "../../Panda";
+import Icon from "../../Icon";
 
 const PERKS = [
-  { icon: "⭐", title: "Featured placement", desc: "Show up first in brand search and at the top of Reels." },
-  { icon: "🐼", title: "Pro badge", desc: "A verified-style Pro badge on your profile and cards." },
-  { icon: "💸", title: "Half commission", desc: `Pay just ${PRO_COMMISSION}% per deal instead of ${DEFAULT_COMMISSION}%. Pays for itself fast.` },
-  { icon: "📊", title: "Profile analytics", desc: "See how many brands viewed your profile." },
-  { icon: "🎬", title: "More reels", desc: `Upload up to ${PRO_REELS} showcase reels instead of 3.` },
-  { icon: "🚀", title: "Priority ranking", desc: "Rank above free creators in every list." },
+  { icon: "star", title: "Featured placement", desc: "Show up first in brand search and at the top of Reels." },
+  { icon: "panda", title: "Pro badge", desc: "A verified-style Pro badge on your profile and cards." },
+  { icon: "rupee", title: "Half commission", desc: `Pay just ${PRO_COMMISSION}% per deal instead of ${DEFAULT_COMMISSION}%. Pays for itself fast.` },
+  { icon: "chart", title: "Profile analytics", desc: "See how many brands viewed your profile." },
+  { icon: "film", title: "More reels", desc: `Upload up to ${PRO_REELS} showcase reels instead of 3.` },
+  { icon: "rocket", title: "Priority ranking", desc: "Rank above free creators in every list." },
 ];
 
 function ProInner() {
@@ -24,7 +25,7 @@ function ProInner() {
 
   useEffect(() => {
     const status = params.get("status");
-    if (status === "success") setBanner("🎉 Welcome to Pro! Your perks are now live.");
+    if (status === "success") setBanner("Welcome to Pro! Your perks are now live.");
     if (status === "failed") setBanner("Payment didn't go through. You can try again.");
     if (status === "error") setBanner("Something went wrong verifying payment. If money was deducted, it'll reflect shortly.");
     // load Cashfree SDK
@@ -68,14 +69,14 @@ function ProInner() {
 
         {pro ? (
           <>
-            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", textAlign: "center", margin: "4px 0 4px" }}>You're Pro 🎉</h1>
+            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", textAlign: "center", margin: "4px 0 4px" }}>You're Pro</h1>
             <p style={{ fontSize: 14, color: "var(--muted)", fontWeight: 600, textAlign: "center", marginBottom: 8 }}>
               Active until {new Date(me.profile.pro_until).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </p>
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-1.5px", color: "var(--ink)", textAlign: "center", margin: "4px 0 4px" }}>Go Pro 🐼</h1>
+            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-1.5px", color: "var(--ink)", textAlign: "center", margin: "4px 0 4px" }}>Go Pro</h1>
             <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, textAlign: "center", marginBottom: 20 }}>Get hired more. Stand out, pay less commission.</p>
           </>
         )}
@@ -83,7 +84,7 @@ function ProInner() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
           {PERKS.map((p) => (
             <div key={p.title} style={{ display: "flex", gap: 14, background: "#fff", borderRadius: 16, padding: 14, border: "1.5px solid #efe7d6", alignItems: "center" }}>
-              <div style={{ fontSize: 26, flexShrink: 0 }}>{p.icon}</div>
+              <div style={{ flexShrink: 0, width: 30, display: "flex", justifyContent: "center" }}>{p.icon === "panda" ? <Panda size={26} animate={false} /> : <Icon name={p.icon} size={24} color="var(--coral)" />}</div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{p.title}</div>
                 <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500, lineHeight: 1.4 }}>{p.desc}</div>
