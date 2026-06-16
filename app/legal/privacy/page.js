@@ -46,7 +46,7 @@ export default function Privacy() {
       <P>We may update this Privacy Policy from time to time. Material changes will be communicated through the Platform.</P>
 
       <H2>10. Contact</H2>
-      <P>For privacy questions, contact Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: [SUPPORT_EMAIL].</P>
+      <P>For privacy questions, contact Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: support@hypepanda.com.</P>
     </LegalShell>
   );
 }

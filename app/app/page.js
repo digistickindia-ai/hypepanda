@@ -63,8 +63,8 @@ function SignInInner() {
           <button className="pressable" onClick={signInWithGoogle} style={{ width: "100%", background: "#fff", color: "var(--ink)", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 14 }}>
             <span style={{ color: "#EA4335", fontWeight: 800, fontSize: 19 }}>G</span> Sign in with Google
           </button>
-          <button className="pressable" onClick={() => alert("Apple sign-in needs an Apple Developer account ($99/yr). Google works now.")} style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            <span style={{ fontSize: 19 }}>&#63743;</span> Sign in with Apple
+          <button className="pressable" onClick={() => window.location.href = "/app/email?role=" + role} style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 6L2 7" /></svg> Continue with email
           </button>
           <p style={{ fontSize: 12, color: "var(--faint)", marginTop: 16, lineHeight: 1.5 }}>
             By continuing you agree to our{" "}

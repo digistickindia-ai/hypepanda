@@ -16,7 +16,7 @@ export default function Shipping() {
       <P>As all transactions involve digital services, there are no shipping charges, courier timelines, or physical delivery addresses involved.</P>
 
       <H2>Contact</H2>
-      <P>For questions about service delivery, contact Digistick Services Private Limited at [SUPPORT_EMAIL].</P>
+      <P>For questions about service delivery, contact Digistick Services Private Limited at support@hypepanda.com.</P>
     </LegalShell>
   );
 }
