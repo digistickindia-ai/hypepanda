@@ -51,7 +51,7 @@ function EmailAuthInner() {
     });
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    setMsg("We sent a 6-digit code to your email. Enter it below to verify.");
+    setMsg("We sent a verification code to your email. Enter it below to verify.");
     setMode("verify");
   };
 
@@ -60,7 +60,7 @@ function EmailAuthInner() {
     setErr(""); setMsg("");
     if (!otp) { setErr("Enter the code from your email."); return; }
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
+    const { error } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: "email" });
     setBusy(false);
     if (error) { setErr(error.message); return; }
     router.replace("/app/home?role=" + role);
@@ -82,11 +82,11 @@ function EmailAuthInner() {
     setErr(""); setMsg("");
     if (!email) { setErr("Enter your email first."); return; }
     setBusy(true);
-    // signInWithOtp sends a 6-digit code (email OTP) the user can use to get in
+    // signInWithOtp sends an email OTP code the user can use to get in
     const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    setMsg("We sent a 6-digit code to your email.");
+    setMsg("We sent a code to your email.");
     setMode("reset");
   };
 
@@ -95,7 +95,7 @@ function EmailAuthInner() {
     setErr(""); setMsg("");
     if (!otp) { setErr("Enter the code from your email."); return; }
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
+    const { error } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: "email" });
     if (error) { setBusy(false); setErr(error.message); return; }
     if (password) {
       const { error: e2 } = await supabase.auth.updateUser({ password });
@@ -121,7 +121,7 @@ function EmailAuthInner() {
         <p style={{ fontSize: 14, color: "var(--muted)", fontWeight: 600, margin: "0 0 22px" }}>
           {mode === "login" && "Log in with your email and password."}
           {mode === "signup" && "Sign up with email — we'll send a code to verify."}
-          {mode === "verify" && "Check your inbox for a 6-digit code."}
+          {mode === "verify" && "Check your inbox for the code."}
           {mode === "forgot" && "We'll email you a code to reset your password."}
           {mode === "reset" && "Enter the code and choose a new password."}
         </p>
@@ -141,7 +141,7 @@ function EmailAuthInner() {
 
         {/* OTP code field */}
         {(mode === "verify" || mode === "reset") && (
-          <Field type="text" placeholder="6-digit code" value={otp} onChange={setOtp} inputMode="numeric" />
+          <Field type="text" placeholder="Enter code" value={otp} onChange={setOtp} inputMode="numeric" />
         )}
 
         {/* New password on reset */}
