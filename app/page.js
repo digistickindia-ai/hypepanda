@@ -1,5 +1,7 @@
 "use client";
 
+import Logo from "./Logo";
+
 function Blob({ children, delay = 0, slow = false }) {
   return (
     <g className={slow ? "blobSlow" : "blob"} style={{ animationDelay: `${delay}s` }}>
@@ -14,8 +16,7 @@ export default function Landing() {
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
 
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px" }}>
-          <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)" }}>HypePanda</span>
-          <a href="/app" className="pressable" style={{ background: "var(--ink)", color: "#fff", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 24, textDecoration: "none" }}>Join now</a>
+          <Logo height={34} />
         </nav>
 
         <section style={{ padding: "16px 24px 0", textAlign: "center" }}>
@@ -130,7 +131,7 @@ export default function Landing() {
         </section>
 
         <footer style={{ padding: "28px 24px 40px", textAlign: "center" }}>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", color: "var(--ink)" }}>HypePanda</div>
+          <div style={{ display: "flex", justifyContent: "center" }}><Logo height={26} /></div>
           <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 6 }}>by Digistick &#183; &#169; 2026</div>
         </footer>
 

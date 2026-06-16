@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import Logo from "../Logo";
 
 const TABS = [
   { key: "", label: "Overview", href: "/admin" },
@@ -19,7 +20,7 @@ export default function AdminShell({ children }) {
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1.5px solid #efe7d6" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)" }}>HypePanda</span>
+            <Logo height={26} />
             <span style={{ background: "var(--coral)", color: "#4A1B0C", fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 12 }}>ADMIN</span>
           </div>
           <button onClick={() => router.push("/app/home")} style={{ fontSize: 14, fontWeight: 700, color: "var(--muted)" }}>← Back to app</button>
