@@ -16,7 +16,7 @@ export default function Landing() {
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
 
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px" }}>
-          <Logo height={34} />
+          <Logo height={44} />
         </nav>
 
         <section style={{ padding: "16px 24px 0", textAlign: "center" }}>
@@ -42,10 +42,13 @@ export default function Landing() {
             <Blob delay={0.15}>
               <ellipse cx="240" cy="80" rx="48" ry="45" fill="#fff" stroke="var(--ink)" strokeWidth="3" />
               <ellipse cx="206" cy="50" rx="16" ry="17" fill="var(--ink)" /><ellipse cx="274" cy="50" rx="16" ry="17" fill="var(--ink)" />
-              <ellipse cx="223" cy="76" rx="13.5" ry="16" fill="var(--ink)" /><circle cx="219" cy="71" r="5" fill="#fff" />
-              <ellipse cx="257" cy="76" rx="13.5" ry="16" fill="var(--ink)" /><circle cx="253" cy="71" r="5" fill="#fff" />
-              <ellipse cx="240" cy="94" rx="6" ry="4.5" fill="var(--ink)" />
+              <ellipse cx="206" cy="51" rx="8" ry="9" fill="#7B6CD9" /><ellipse cx="274" cy="51" rx="8" ry="9" fill="#7B6CD9" />
+              <ellipse cx="220" cy="76" rx="17" ry="14" fill="var(--ink)" /><ellipse cx="260" cy="76" rx="17" ry="14" fill="var(--ink)" />
+              <rect x="201" y="69" width="78" height="14" rx="7" fill="var(--ink)" />
+              <rect x="205" y="71" width="29" height="10" rx="5" fill="#7B6CD9" /><rect x="246" y="71" width="29" height="10" rx="5" fill="#7B6CD9" />
+              <ellipse cx="240" cy="96" rx="6" ry="4.5" fill="var(--ink)" />
               <path d="M231 104 Q240 112 249 104" stroke="var(--ink)" strokeWidth="3" fill="none" strokeLinecap="round" />
+              <path d="M249 103 L268 97" stroke="#7BC47F" strokeWidth="4" fill="none" strokeLinecap="round" />
             </Blob>
             <Blob delay={0.45} slow>
               <circle cx="320" cy="58" r="24" fill="var(--coral)" />

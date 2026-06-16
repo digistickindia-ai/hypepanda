@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import Logo from "../Logo";
 
-const FACES = Array.from({ length: 17 }, (_, i) => `/faces/c${i + 1}.jpg`);
+const FACES = Array.from({ length: 16 }, (_, i) => `/faces/c${i + 1}.jpg`);
 
 function Column({ imgs, dur, reverse }) {
   const doubled = [...imgs, ...imgs];
@@ -46,8 +46,8 @@ function SignInInner() {
         {/* Scrolling photo wall */}
         <div style={{ position: "absolute", inset: 0, display: "flex", gap: 10, padding: "0 12px", opacity: 0.9 }}>
           <Column imgs={FACES.slice(0, 6)} dur={26} />
-          <Column imgs={FACES.slice(6, 12)} dur={32} reverse />
-          <Column imgs={FACES.slice(11, 17)} dur={29} />
+          <Column imgs={FACES.slice(6, 11)} dur={32} reverse />
+          <Column imgs={FACES.slice(11, 16)} dur={29} />
         </div>
 
         {/* Cream fade over lower half so text is readable */}
@@ -56,9 +56,9 @@ function SignInInner() {
         {/* Content */}
         <div style={{ position: "relative", marginTop: "auto", padding: "0 28px 40px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-            <Logo height={54} />
+            <Logo height={88} />
           </div>
-          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, marginBottom: 22 }}>Where brands &amp; creators meet</p>
+          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, marginBottom: 22, marginTop: 8 }}>Where brands &amp; creators meet</p>
 
           <button className="pressable" onClick={signInWithGoogle} style={{ width: "100%", background: "#fff", color: "var(--ink)", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 14 }}>
             <span style={{ color: "#EA4335", fontWeight: 800, fontSize: 19 }}>G</span> Sign in with Google
