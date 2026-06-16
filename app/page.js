@@ -2,6 +2,8 @@
 
 import Logo from "./Logo";
 
+const legalLink = { fontSize: 13, fontWeight: 600, color: "var(--muted)", textDecoration: "none" };
+
 function Blob({ children, delay = 0, slow = false }) {
   return (
     <g className={slow ? "blobSlow" : "blob"} style={{ animationDelay: `${delay}s` }}>
@@ -135,7 +137,18 @@ export default function Landing() {
 
         <footer style={{ padding: "28px 24px 40px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center" }}><Logo height={26} /></div>
-          <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 6 }}>by Digistick &#183; &#169; 2026</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", justifyContent: "center", margin: "16px 0 12px" }}>
+            <a href="/legal/about" style={legalLink}>About</a>
+            <a href="/legal/contact" style={legalLink}>Contact</a>
+            <a href="/legal/terms" style={legalLink}>Terms</a>
+            <a href="/legal/privacy" style={legalLink}>Privacy</a>
+            <a href="/legal/refund" style={legalLink}>Refunds</a>
+            <a href="/legal/shipping" style={legalLink}>Delivery</a>
+          </div>
+          <div style={{ fontSize: 12, color: "var(--faint)", lineHeight: 1.5 }}>
+            HypePanda is a brand of Digistick Services Private Limited<br />
+            &#169; 2026 Digistick Services Private Limited. All rights reserved.
+          </div>
         </footer>
 
       </div>

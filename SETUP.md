@@ -254,3 +254,28 @@ the Go Pro button will say keys aren't configured.
 LATER (true auto-renew): when Cashfree Subscriptions / UPI AutoPay is approved
 on your account, we swap the one-time order in /api/pro-pay for a recurring
 mandate. Everything else (perks, gating, UI) stays the same.
+
+=========================================================
+9. LEGAL PAGES (required for payment gateway)
+=========================================================
+Six legal pages are live at:
+  /legal/terms     — Terms & Conditions
+  /legal/privacy   — Privacy Policy
+  /legal/refund    — Refund & Cancellation Policy
+  /legal/shipping  — Delivery Policy (gateways require this even for digital)
+  /legal/contact   — Contact Us
+  /legal/about     — About
+
+They're linked from the landing-page footer and the login screen.
+All are written for the brand HypePanda operating under
+Digistick Services Private Limited, Sector 68, Noida.
+
+>>> ONE THING TO DO: replace [SUPPORT_EMAIL] with your real support/legal
+    email. It appears in the terms, privacy, refund, shipping, contact, and
+    about pages. Find-and-replace [SUPPORT_EMAIL] across the app/legal folder.
+
+IMPORTANT (honest note): these are solid, standard, gateway-compliant
+templates — good to launch with and to satisfy Cashfree's review. Because
+HypePanda holds brand payments and pays out creators (money passing through
+Digistick's account), have a CA/lawyer review the Terms, Refund, and
+commission/GST language before scaling.

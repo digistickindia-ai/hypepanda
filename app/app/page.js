@@ -66,7 +66,12 @@ function SignInInner() {
           <button className="pressable" onClick={() => alert("Apple sign-in needs an Apple Developer account ($99/yr). Google works now.")} style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <span style={{ fontSize: 19 }}>&#63743;</span> Sign in with Apple
           </button>
-          <p style={{ fontSize: 13, color: "var(--faint)", marginTop: 20 }}>by Digistick</p>
+          <p style={{ fontSize: 12, color: "var(--faint)", marginTop: 16, lineHeight: 1.5 }}>
+            By continuing you agree to our{" "}
+            <a href="/legal/terms" style={{ color: "var(--muted)", fontWeight: 600 }}>Terms</a> and{" "}
+            <a href="/legal/privacy" style={{ color: "var(--muted)", fontWeight: 600 }}>Privacy Policy</a>.
+          </p>
+          <p style={{ fontSize: 13, color: "var(--faint)", marginTop: 14 }}>by Digistick</p>
         </div>
       </div>
     </main>
