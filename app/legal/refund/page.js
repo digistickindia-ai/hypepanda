@@ -28,7 +28,7 @@ export default function Refund() {
       <P>Where a refund is approved, it will be processed to the original payment method through our payment gateway. Refunds typically reflect within 5–7 business days, subject to the gateway and your bank&apos;s processing times.</P>
 
       <H2>7. Contact</H2>
-      <P>For refund or cancellation requests, contact Digistick Services Private Limited at support@hypepanda.com.</P>
+      <P>For refund or cancellation requests, contact Digistick Services Private Limited at support@hypepanda.in.</P>
     </LegalShell>
   );
 }

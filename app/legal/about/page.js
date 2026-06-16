@@ -16,7 +16,7 @@ export default function About() {
       <P>We are committed to a safe, transparent marketplace — secure payments, honest profiles, and fair terms for both sides.</P>
 
       <H2>Contact</H2>
-      <P>Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: support@hypepanda.com.</P>
+      <P>Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: support@hypepanda.in.</P>
     </LegalShell>
   );
 }

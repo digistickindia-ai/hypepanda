@@ -13,7 +13,7 @@ export default function Contact() {
       <P>Sector 68, Noida, Uttar Pradesh, India</P>
 
       <H2>Email</H2>
-      <P>support@hypepanda.com</P>
+      <P>support@hypepanda.in</P>
 
       <H2>Support Hours</H2>
       <P>Monday to Friday, 10:00 AM – 6:00 PM IST. We aim to respond to all enquiries within 2 business days.</P>

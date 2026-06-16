@@ -19,8 +19,25 @@ function EmailAuthInner() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   const go = (m) => { setMode(m); setErr(""); setMsg(""); };
+
+  // ---- RESEND the code ----
+  const resend = async () => {
+    if (cooldown > 0) return;
+    setErr(""); setMsg("");
+    setBusy(true);
+    // For signup verification and reset, re-send an email OTP code.
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: mode === "verify" } });
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    setMsg("New code sent. Check your inbox.");
+    setCooldown(30);
+    const timer = setInterval(() => {
+      setCooldown((c) => { if (c <= 1) { clearInterval(timer); return 0; } return c - 1; });
+    }, 1000);
+  };
 
   // ---- SIGN UP (password) then OTP verify ----
   const signUp = async () => {
@@ -146,6 +163,13 @@ function EmailAuthInner() {
             mode === "verify" ? "Verify & continue" :
             mode === "forgot" ? "Send code" : "Reset & continue"}
         </button>
+
+        {/* resend code (verify + reset modes) */}
+        {(mode === "verify" || mode === "reset") && (
+          <button onClick={resend} disabled={busy || cooldown > 0} style={{ width: "100%", background: "transparent", border: "none", color: cooldown > 0 ? "var(--faint)" : "var(--coral)", fontSize: 14, fontWeight: 800, marginTop: 14, cursor: cooldown > 0 ? "default" : "pointer" }}>
+            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          </button>
+        )}
 
         {/* switching links */}
         <div style={{ marginTop: 18, fontSize: 14, color: "var(--muted)", fontWeight: 600, textAlign: "center", lineHeight: 2 }}>

@@ -54,7 +54,7 @@ export default function Terms() {
       <P>We may update these Terms from time to time. Continued use of the Platform after changes constitutes acceptance of the revised Terms.</P>
 
       <H2>13. Contact</H2>
-      <P>Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: support@hypepanda.com.</P>
+      <P>Digistick Services Private Limited, Sector 68, Noida, Uttar Pradesh, India. Email: support@hypepanda.in.</P>
     </LegalShell>
   );
 }
