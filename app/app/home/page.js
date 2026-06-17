@@ -7,6 +7,7 @@ import { loadMe, inr, fmtFollowers, NICHES } from "@/lib/me";
 import Panda from "../../Panda";
 import Icon from "../../Icon";
 import TabBar from "../TabBar";
+import NotificationBell from "../NotificationBell";
 
 function HomeInner() {
   const router = useRouter();
@@ -100,9 +101,12 @@ function CreatorHome({ me, router }) {
           <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first}</p>
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "2px 0 0" }}>Your panda HQ</h1>
         </div>
-        <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>Earned</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--green)" }}>{data ? inr(data.earnings) : "…"}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right" }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>Earned</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--green)" }}>{data ? inr(data.earnings) : "…"}</div>
+          </div>
+          <NotificationBell supabase={me.supabase} userId={p.id} />
         </div>
       </div>
 
@@ -300,9 +304,12 @@ function BusinessHome({ me, router }) {
           <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, margin: 0 }}>Hey {first}</p>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", margin: "2px 0 0", lineHeight: 1.1 }}>{isAgency ? "Agency HQ" : "Find creators"}</h1>
         </div>
-        <div onClick={() => router.push("/app/deals")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right", flexShrink: 0, cursor: "pointer" }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>Active</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--blue)" }}>{loading ? "…" : activeDeals.length}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div onClick={() => router.push("/app/deals")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: "8px 14px", textAlign: "right", cursor: "pointer" }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px" }}>Active</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--blue)" }}>{loading ? "…" : activeDeals.length}</div>
+          </div>
+          <NotificationBell supabase={me.supabase} userId={p.id} />
         </div>
       </div>
 
