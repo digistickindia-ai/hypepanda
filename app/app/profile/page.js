@@ -17,8 +17,8 @@ function ProfileInner() {
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
   const [viewCount, setViewCount] = useState(0);
-  const [editingFollowers, setEditingFollowers] = useState(false);
-  const [followerInput, setFollowerInput] = useState("");
+  const [igUrl, setIgUrl] = useState("");
+  const [vBusy, setVBusy] = useState(false);
   const [tab, setTab] = useState("photos");
   const [uploading, setUploading] = useState(false);
 
@@ -44,11 +44,18 @@ function ProfileInner() {
 
   const signOut = async () => { await me.supabase.auth.signOut(); router.replace("/"); };
 
-  const saveFollowers = async () => {
-    const n = followerInput ? Number(followerInput) : null;
-    await me.supabase.from("profiles").update({ followers: n }).eq("id", me.profile.id);
-    setMe({ ...me, profile: { ...me.profile, followers: n } });
-    setEditingFollowers(false);
+  const submitVerification = async () => {
+    let url = igUrl.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url.replace(/^@/, "instagram.com/");
+    setVBusy(true);
+    // derive a handle from the url for display
+    let handle = me.profile.instagram_handle;
+    const m = url.match(/instagram\.com\/([^/?#]+)/i);
+    if (m) handle = m[1];
+    await me.supabase.from("profiles").update({ instagram_url: url, instagram_handle: handle, verification_status: "pending" }).eq("id", me.profile.id);
+    setMe({ ...me, profile: { ...me.profile, instagram_url: url, instagram_handle: handle, verification_status: "pending" } });
+    setVBusy(false);
   };
 
   const addPhoto = async (e) => {
@@ -94,7 +101,7 @@ function ProfileInner() {
             <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>
               {p.full_name}
               {isCreator && isProActive(p) && <span style={{ background: "var(--yellow)", borderRadius: 10, padding: "3px 7px", display: "inline-flex", alignItems: "center", gap: 3 }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /><span style={{ fontSize: 10, fontWeight: 800, color: "#412402" }}>PRO</span></span>}
-              {isCreator && p.instagram_connected && <span style={{ background: "#173404", borderRadius: 10, padding: "3px 6px", display: "inline-flex", alignItems: "center" }}><Icon name="check" size={11} color="#fff" strokeWidth={3} /></span>}
+              {isCreator && p.verification_status === "verified" && <span style={{ background: "#173404", borderRadius: 10, padding: "3px 6px", display: "inline-flex", alignItems: "center" }}><Icon name="check" size={11} color="#fff" strokeWidth={3} /></span>}
             </div>
             <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>
               {isCreator ? "@" + p.instagram_handle : p.company_name} · {p.city}
@@ -122,24 +129,35 @@ function ProfileInner() {
           </div>
         )}
 
-        {/* Follower count — self-reported until Instagram auto-verify ships */}
-        {isCreator && !p.instagram_connected && (
-          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: "14px 16px", marginBottom: 16 }}>
-            {editingFollowers ? (
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input type="number" value={followerInput} onChange={(e) => setFollowerInput(e.target.value)} placeholder="Follower count" style={{ flex: 1, padding: "10px 12px", fontSize: 14, fontWeight: 600, border: "2px solid #e8dfcc", borderRadius: 12, outline: "none", fontFamily: "inherit" }} />
-                <button onClick={saveFollowers} className="pressable" style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "10px 16px", fontSize: 13, fontWeight: 800 }}>Save</button>
+        {/* Instagram verification */}
+        {isCreator && (
+          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: "16px", marginBottom: 16 }}>
+            {p.verification_status === "verified" ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--green)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="check" size={18} color="#fff" strokeWidth={3} /></span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>Verified creator</div>
+                  <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>{p.followers != null ? fmtFollowers(p.followers) + " followers" : "Your account is live"}</div>
+                </div>
+              </div>
+            ) : p.verification_status === "pending" ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 10, background: "var(--yellow)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18, fontWeight: 800, color: "#412402" }}>!</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>Verification pending</div>
+                  <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>We&apos;re checking your Instagram. You&apos;ll get an email once you&apos;re verified.</div>
+                </div>
               </div>
             ) : (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>Followers (self-reported)</div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)" }}>{p.followers != null ? fmtFollowers(p.followers) : "Not set"}</div>
-                </div>
-                <button onClick={() => { setFollowerInput(p.followers || ""); setEditingFollowers(true); }} style={{ fontSize: 13, fontWeight: 800, color: "var(--blue)" }}>Edit</button>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>Get verified</div>
+                <p style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, margin: "0 0 12px", lineHeight: 1.5 }}>
+                  {p.verification_status === "rejected" ? "Your last request needs another look — submit your correct Instagram link below." : "Submit your Instagram link. We'll verify your account and add a verified badge so brands trust you."}
+                </p>
+                <input value={igUrl} onChange={(e) => setIgUrl(e.target.value)} placeholder="https://instagram.com/yourhandle" style={{ width: "100%", padding: "12px 14px", fontSize: 14, fontWeight: 600, border: "2px solid #e8dfcc", borderRadius: 12, outline: "none", fontFamily: "inherit", boxSizing: "border-box", marginBottom: 10 }} />
+                <button onClick={submitVerification} disabled={vBusy} className="pressable" style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 14, padding: "13px", fontSize: 14, fontWeight: 800 }}>{vBusy ? "Submitting…" : "Submit for verification"}</button>
               </div>
             )}
-            <p style={{ fontSize: 12, color: "var(--faint)", fontWeight: 600, margin: "10px 0 0", lineHeight: 1.4 }}>Instagram auto-verification with a verified badge is coming soon. For now, brands can tap your handle to check your profile.</p>
           </div>
         )}
 

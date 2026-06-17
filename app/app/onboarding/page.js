@@ -72,11 +72,12 @@ function OnboardingInner() {
           role: "creator", full_name: name.trim(), city: city.trim(), niche,
           instagram_handle: handle.replace("@", "").trim(),
           followers: followers ? Number(followers) : null,
+          email: user.email,
           rate_per_post: Number(rate), onboarding_done: true,
         }
       : {
           role, full_name: name.trim(), company_name: company.trim(),
-          city: city.trim(), niche, onboarding_done: true,
+          city: city.trim(), niche, email: user.email, onboarding_done: true,
         };
     const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     setSaving(false);

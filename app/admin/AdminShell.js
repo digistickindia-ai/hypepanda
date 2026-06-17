@@ -5,6 +5,7 @@ import Logo from "../Logo";
 
 const TABS = [
   { key: "", label: "Overview", href: "/admin" },
+  { key: "verify", label: "Verify", href: "/admin/verify" },
   { key: "users", label: "Users", href: "/admin/users" },
   { key: "showcase", label: "Showcase", href: "/admin/showcase" },
   { key: "deals", label: "Deals", href: "/admin/deals" },

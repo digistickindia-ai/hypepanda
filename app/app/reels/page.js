@@ -112,7 +112,7 @@ function GridTile({ item, onClick }) {
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "26px 10px 8px", background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</span>
-          {c.instagram_connected && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
+          {c.verification_status === "verified" && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.niche}</div>
       </div>
@@ -142,7 +142,7 @@ function Player({ items, startIdx, isBusiness, onClose, onHire }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{c.full_name}</span>
-              {c.instagram_connected && <Icon name="check" size={16} color="#fff" strokeWidth={3} />}
+              {c.verification_status === "verified" && <Icon name="check" size={16} color="#fff" strokeWidth={3} />}
             </div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", fontWeight: 600, marginTop: 3 }}>{c.city || "India"} · {c.niche}</div>
             {c.followers != null && (

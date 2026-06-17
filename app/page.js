@@ -19,6 +19,7 @@ export default function Landing() {
 
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px" }}>
           <Logo height={44} />
+          <a href="/app" className="pressable" style={{ background: "var(--ink)", color: "#fff", fontSize: 14, fontWeight: 800, padding: "10px 20px", borderRadius: 22, textDecoration: "none" }}>Log in</a>
         </nav>
 
         <section style={{ padding: "16px 24px 0", textAlign: "center" }}>

@@ -91,7 +91,7 @@ function CreatorHome({ me, router }) {
   })(); }, []);
 
   const pro = p.is_pro && p.pro_until && new Date(p.pro_until).getTime() > Date.now();
-  const strength = p.instagram_connected ? 100 : 80;
+  const strength = p.verification_status === "verified" ? 100 : 80;
 
   return (
     <Shell>
@@ -404,7 +404,7 @@ function CreatorCard({ c, onClick }) {
       <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
         <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>
         {proActive && <span style={{ position: "absolute", top: 8, left: 8, background: "var(--yellow)", borderRadius: 10, padding: "3px 8px", display: "flex", alignItems: "center", gap: 3 }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /><span style={{ fontSize: 10, fontWeight: 800, color: "#412402" }}>PRO</span></span>}
-        {c.instagram_connected && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "3px 7px", display: "flex", alignItems: "center" }}><Icon name="check" size={12} color="#173404" strokeWidth={3} /></span>}
+        {c.verification_status === "verified" && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "3px 7px", display: "flex", alignItems: "center" }}><Icon name="check" size={12} color="#173404" strokeWidth={3} /></span>}
       </div>
       <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>{c.niche} · {c.city}</div>
