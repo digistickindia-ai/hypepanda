@@ -28,9 +28,10 @@ function SignInInner() {
 
   const signInWithGoogle = async () => {
     const supabase = createClient();
+    const next = encodeURIComponent(`/app/home?role=${role}`);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/app/home?role=${role}` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
     });
     if (error) alert("Sign-in error: " + error.message);
   };

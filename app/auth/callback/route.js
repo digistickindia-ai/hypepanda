@@ -5,7 +5,10 @@ import { cookies } from "next/headers";
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/app/home";
+  // next may be URL-encoded; default to home
+  let next = searchParams.get("next") || "/app/home";
+  try { next = decodeURIComponent(next); } catch (e) {}
+  if (!next.startsWith("/")) next = "/app/home";
 
   if (code) {
     const cookieStore = cookies();
@@ -19,7 +22,11 @@ export async function GET(request) {
         },
       }
     );
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      // send back to login with an error flag rather than a logged-out home
+      return NextResponse.redirect(`${origin}/app?error=auth`);
+    }
   }
   return NextResponse.redirect(`${origin}${next}`);
 }
