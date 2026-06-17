@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase";
 import Logo from "./Logo";
 
 const legalLink = { fontSize: 13, fontWeight: 600, color: "var(--muted)", textDecoration: "none" };
@@ -13,6 +15,39 @@ function Blob({ children, delay = 0, slow = false }) {
 }
 
 export default function Landing() {
+  const [exchanging, setExchanging] = useState(false);
+
+  // If Google OAuth dropped us back here with ?code=..., complete the
+  // session exchange and forward into the app. This makes login work
+  // regardless of which redirect URL Supabase used.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (!code) return;
+    setExchanging(true);
+    const supabase = createClient();
+    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+      // clear the ?code from the URL either way
+      if (error) {
+        setExchanging(false);
+        window.history.replaceState({}, "", "/");
+        return;
+      }
+      window.location.replace("/app/home");
+    });
+  }, []);
+
+  if (exchanging) {
+    return (
+      <main style={{ background: "var(--cream)", minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Logo height={44} />
+          <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 700, marginTop: 16 }}>Signing you in…</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main style={{ background: "var(--cream)", minHeight: "100dvh" }}>
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
