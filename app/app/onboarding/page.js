@@ -24,7 +24,9 @@ function OnboardingInner() {
 
   useEffect(() => {
     const r = params.get("role");
-    if (r === "business" || r === "agency" || r === "creator") setRole(r);
+    if (r === "business") { router.replace("/app/onboarding/business"); return; }
+    if (r === "agency") { router.replace("/app/onboarding/agency"); return; }
+    if (r === "creator") setRole(r);
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.replace("/app"); return; }
       setUser(data.user);
