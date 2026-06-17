@@ -21,9 +21,9 @@ export default function AdminVerify() {
   const approve = async (c) => {
     const followers = followerInputs[c.id] != null && followerInputs[c.id] !== "" ? Number(followerInputs[c.id]) : c.followers;
     setBusy(c.id);
-    await supabase.from("profiles").update({ verification_status: "verified", followers, instagram_connected: true }).eq("id", c.id);
+    const { error } = await supabase.from("profiles").update({ verification_status: "verified", followers, instagram_connected: true }).eq("id", c.id);
+    if (error) { setBusy(null); alert("Couldn't verify: " + error.message + "\n\nIf this mentions a policy, run verification-patch.sql in Supabase."); return; }
     await supabase.from("notifications").insert({ user_id: c.id, kind: "accepted", text: "Your account is verified — you're now live on HypePanda with a verified badge!", link: "/app/profile" });
-    // send verification email (best-effort; route added separately)
     try {
       await fetch("/api/verify-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: c.email, name: c.full_name }) });
     } catch (e) {}
@@ -33,7 +33,8 @@ export default function AdminVerify() {
 
   const reject = async (c) => {
     setBusy(c.id);
-    await supabase.from("profiles").update({ verification_status: "rejected" }).eq("id", c.id);
+    const { error } = await supabase.from("profiles").update({ verification_status: "rejected" }).eq("id", c.id);
+    if (error) { setBusy(null); alert("Couldn't update: " + error.message + "\n\nIf this mentions a policy, run verification-patch.sql in Supabase."); return; }
     await supabase.from("notifications").insert({ user_id: c.id, kind: "message", text: "Your verification needs another look — please re-submit your Instagram link from your profile.", link: "/app/profile" });
     await load(supabase);
     setBusy(null);
