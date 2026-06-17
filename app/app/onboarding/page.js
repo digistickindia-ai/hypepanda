@@ -18,6 +18,7 @@ function OnboardingInner() {
   const [city, setCity] = useState("");
   const [niche, setNiche] = useState("");
   const [handle, setHandle] = useState("");
+  const [followers, setFollowers] = useState("");
   const [rate, setRate] = useState("");
   const [company, setCompany] = useState("");
 
@@ -70,6 +71,7 @@ function OnboardingInner() {
       ? {
           role: "creator", full_name: name.trim(), city: city.trim(), niche,
           instagram_handle: handle.replace("@", "").trim(),
+          followers: followers ? Number(followers) : null,
           rate_per_post: Number(rate), onboarding_done: true,
         }
       : {
@@ -130,8 +132,9 @@ function OnboardingInner() {
                     <span style={{ position: "absolute", left: 18, top: 16, fontSize: 17, fontWeight: 700, color: "var(--faint)" }}>@</span>
                     <input autoFocus value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="yourhandle" style={{ ...inputStyle, paddingLeft: 38 }} />
                   </div>
+                  <input type="number" value={followers} onChange={(e) => setFollowers(e.target.value)} placeholder="Follower count (e.g. 12000)" style={{ ...inputStyle, marginTop: 12 }} />
                   <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12, lineHeight: 1.5, fontWeight: 500 }}>
-                    You&apos;ll verify this with one tap on your profile to show a real follower count and a verified badge.
+                    Enter your follower count for now — brands can tap your handle to check your profile. Instagram auto-verification is coming soon to confirm it with a badge.
                   </p>
                 </div>
               )}

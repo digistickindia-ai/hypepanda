@@ -46,14 +46,20 @@ export default function CreatorDetail() {
             <span style={{ fontSize: 36, fontWeight: 800, color: col }}>{initials}</span>
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{creator.full_name}</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>@{creator.instagram_handle} · {creator.city}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>
+            <a href={"https://instagram.com/" + creator.instagram_handle} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline", textUnderlineOffset: 2 }}>@{creator.instagram_handle}</a>
+            {creator.instagram_connected
+              ? <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700 }}>✓ verified</span>
+              : <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 600, opacity: 0.8 }}>· self-reported</span>}
+            {" "}· {creator.city}
+          </div>
           {creator.instagram_connected
             ? <span style={{ display: "inline-block", marginTop: 12, background: "#fff", color: "#173404", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 14 }}>Verified creator</span>
             : <span style={{ display: "inline-block", marginTop: 12, background: "rgba(255,255,255,0.25)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 14 }}>Not yet verified</span>}
         </div>
 
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-          <Stat big={creator.instagram_connected ? fmtFollowers(creator.followers) : "—"} small="followers" />
+          <Stat big={creator.followers != null ? fmtFollowers(creator.followers) : "—"} small="followers" />
           <Stat big={creator.niche} small="niche" />
           <Stat big={inr(creator.rate_per_post)} small="per post" />
         </div>

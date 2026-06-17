@@ -145,7 +145,7 @@ function Player({ items, startIdx, isBusiness, onClose, onHire }) {
               {c.instagram_connected && <Icon name="check" size={16} color="#fff" strokeWidth={3} />}
             </div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", fontWeight: 600, marginTop: 3 }}>{c.city || "India"} · {c.niche}</div>
-            {c.instagram_connected && c.followers != null && (
+            {c.followers != null && (
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: 2 }}>{fmtFollowers(c.followers)} followers · {inr(c.rate_per_post)}/post</div>
             )}
           </div>

@@ -17,6 +17,8 @@ function ProfileInner() {
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
   const [viewCount, setViewCount] = useState(0);
+  const [editingFollowers, setEditingFollowers] = useState(false);
+  const [followerInput, setFollowerInput] = useState("");
   const [tab, setTab] = useState("photos");
   const [uploading, setUploading] = useState(false);
 
@@ -41,6 +43,13 @@ function ProfileInner() {
   }, []);
 
   const signOut = async () => { await me.supabase.auth.signOut(); router.replace("/"); };
+
+  const saveFollowers = async () => {
+    const n = followerInput ? Number(followerInput) : null;
+    await me.supabase.from("profiles").update({ followers: n }).eq("id", me.profile.id);
+    setMe({ ...me, profile: { ...me.profile, followers: n } });
+    setEditingFollowers(false);
+  };
 
   const addPhoto = async (e) => {
     const file = e.target.files?.[0]; e.target.value = "";
@@ -96,7 +105,7 @@ function ProfileInner() {
         {/* Stats row (creator) */}
         {isCreator && (
           <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-            <Stat n={p.instagram_connected ? fmtFollowers(p.followers) : "—"} l="followers" />
+            <Stat n={p.followers != null ? fmtFollowers(p.followers) : "—"} l="followers" />
             <Stat n={p.niche} l="niche" />
             <Stat n={inr(p.rate_per_post)} l="per post" />
           </div>
@@ -113,11 +122,25 @@ function ProfileInner() {
           </div>
         )}
 
-        {/* IG verify button */}
+        {/* Follower count — self-reported until Instagram auto-verify ships */}
         {isCreator && !p.instagram_connected && (
-          <a href="/api/instagram/connect" className="pressable" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#E1306C", color: "#fff", borderRadius: 18, padding: "13px", fontSize: 14, fontWeight: 800, textDecoration: "none", marginBottom: 16 }}>
-            Verify with Instagram
-          </a>
+          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: "14px 16px", marginBottom: 16 }}>
+            {editingFollowers ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input type="number" value={followerInput} onChange={(e) => setFollowerInput(e.target.value)} placeholder="Follower count" style={{ flex: 1, padding: "10px 12px", fontSize: 14, fontWeight: 600, border: "2px solid #e8dfcc", borderRadius: 12, outline: "none", fontFamily: "inherit" }} />
+                <button onClick={saveFollowers} className="pressable" style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "10px 16px", fontSize: 13, fontWeight: 800 }}>Save</button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600 }}>Followers (self-reported)</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "var(--ink)" }}>{p.followers != null ? fmtFollowers(p.followers) : "Not set"}</div>
+                </div>
+                <button onClick={() => { setFollowerInput(p.followers || ""); setEditingFollowers(true); }} style={{ fontSize: 13, fontWeight: 800, color: "var(--blue)" }}>Edit</button>
+              </div>
+            )}
+            <p style={{ fontSize: 12, color: "var(--faint)", fontWeight: 600, margin: "10px 0 0", lineHeight: 1.4 }}>Instagram auto-verification with a verified badge is coming soon. For now, brands can tap your handle to check your profile.</p>
+          </div>
         )}
 
         {/* Go Pro upsell */}

@@ -150,7 +150,7 @@ function CreatorHome({ me, router }) {
       <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
         <Stat big={p.niche} small="niche" />
         <Stat big={inr(p.rate_per_post)} small="per post" />
-        <Stat big={p.instagram_connected ? fmtFollowers(p.followers) : "—"} small="followers" />
+        <Stat big={p.followers != null ? fmtFollowers(p.followers) : "—"} small="followers" />
       </div>
 
       {/* New offers */}
