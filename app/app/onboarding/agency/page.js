@@ -13,7 +13,7 @@ export default function AgencyOnboarding() {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState(null);
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(-1);
   const [saving, setSaving] = useState(false);
 
   const [agency, setAgency] = useState("");
@@ -75,6 +75,27 @@ export default function AgencyOnboarding() {
 
   const next = () => { if (step < steps.length - 1) setStep(step + 1); else finish(); };
   const s = steps[step];
+
+  if (step === -1) {
+    return (
+      <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", padding: "28px 24px 36px" }}>
+          <div style={{ marginBottom: 28 }}><Logo height={34} /></div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#BA7517", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>For agencies</div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", lineHeight: 1.15, margin: "0 0 14px" }}>All your clients.<br />One command center.</h1>
+            <p style={{ fontSize: 16, color: "var(--muted)", fontWeight: 600, lineHeight: 1.55, margin: "0 0 28px" }}>Run influencer campaigns for every client brand in one place. Discover verified creators for shoots and UGC, manage each brand, and pay securely — all from your agency HQ.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <WelcomePoint icon="rocket" color="var(--yellow)" iconColor="#412402" title="Manage every brand" text="Add all your client brands and run campaigns for each." />
+              <WelcomePoint icon="check" color="var(--green)" title="Verified creators" text="Real, checked creators for shoots, UGC, and collabs." />
+              <WelcomePoint icon="wallet" color="var(--coral)" title="Secure payments" text="Funds held safely and released only on approval." />
+            </div>
+          </div>
+          <button onClick={() => setStep(0)} className="pressable" style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: 28, padding: "17px", fontSize: 17, fontWeight: 800, marginTop: 28 }}>Set up your agency</button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center" }}>
@@ -145,4 +166,18 @@ const inp = { width: "100%", padding: "15px 18px", fontSize: 15, fontWeight: 600
 const lbl = { display: "block", fontSize: 13, fontWeight: 800, color: "var(--muted)", marginBottom: 8 };
 function pill(active, color, textOnActive = "#fff") {
   return { padding: "11px 16px", borderRadius: 20, fontSize: 14, fontWeight: 700, border: active ? `2px solid ${color}` : "2px solid #e8dfcc", background: active ? color : "#fff", color: active ? textOnActive : "var(--ink)", cursor: "pointer" };
+}
+
+function WelcomePoint({ icon, color, iconColor = "#fff", title, text }) {
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon name={icon} size={20} color={iconColor} />
+      </div>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{title}</div>
+        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, lineHeight: 1.4 }}>{text}</div>
+      </div>
+    </div>
+  );
 }

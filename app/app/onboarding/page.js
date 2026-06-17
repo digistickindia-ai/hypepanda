@@ -4,13 +4,15 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { NICHES } from "@/lib/me";
+import Logo from "../../Logo";
+import Icon from "../../Icon";
 
 function OnboardingInner() {
   const router = useRouter();
   const params = useSearchParams();
   const supabase = createClient();
   const [role, setRole] = useState("creator");
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(-1);
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -95,17 +97,37 @@ function OnboardingInner() {
   const accents = ["var(--green)", "var(--blue)", "var(--pink)", "var(--coral)", "var(--yellow)"];
   const accent = accents[step % accents.length];
 
+  if (step === -1 && isCreator) {
+    return (
+      <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", padding: "28px 24px 36px" }}>
+          <div style={{ marginBottom: 28 }}><Logo height={34} /></div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "var(--coral)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>For creators</div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", lineHeight: 1.15, margin: "0 0 14px" }}>Get discovered.<br />Get paid to create.</h1>
+            <p style={{ fontSize: 16, color: "var(--muted)", fontWeight: 600, lineHeight: 1.55, margin: "0 0 28px" }}>Real brands come to HypePanda to book creators like you for paid collabs, shoots, and UGC content — with payment held safely until the work&apos;s done.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <WelcomePoint icon="handshake" color="var(--pink)" title="Paid collabs & UGC" text="Brands send you offers for reels, shoots, and content." />
+              <WelcomePoint icon="wallet" color="var(--coral)" title="Get paid securely" text="Payment is secured upfront and released when you deliver." />
+              <WelcomePoint icon="rocket" color="var(--green)" title="You set your rate" text="Name your price per post — you're in control." />
+            </div>
+          </div>
+          <button onClick={() => setStep(0)} className="pressable" style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: 28, padding: "17px", fontSize: 17, fontWeight: 800, marginTop: 28 }}>Let&apos;s set up your profile</button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", padding: "0 24px 32px" }}>
-
         <div style={{ display: "flex", gap: 6, paddingTop: 24, marginBottom: 8 }}>
           {steps.map((_, i) => (
             <div key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i <= step ? accent : "#e8dfcc", transition: "background 0.3s" }} />
           ))}
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <button onClick={() => step > 0 ? setStep(step - 1) : router.push("/")} style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>&#8592; Back</button>
+          <button onClick={() => step > 0 ? setStep(step - 1) : (isCreator ? setStep(-1) : router.push("/"))} style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)" }}>&#8592; Back</button>
           <span style={{ fontSize: 13, color: "var(--faint)", fontWeight: 600 }}>{step + 1} of {steps.length}</span>
         </div>
 
@@ -201,5 +223,19 @@ export default function Onboarding() {
     <Suspense fallback={<main style={{ minHeight: "100dvh", background: "var(--cream)" }} />}>
       <OnboardingInner />
     </Suspense>
+  );
+}
+
+function WelcomePoint({ icon, color, title, text }) {
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon name={icon} size={20} color="#fff" />
+      </div>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)" }}>{title}</div>
+        <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, lineHeight: 1.4 }}>{text}</div>
+      </div>
+    </div>
   );
 }
