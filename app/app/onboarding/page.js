@@ -15,6 +15,7 @@ function OnboardingInner() {
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [niche, setNiche] = useState("");
   const [handle, setHandle] = useState("");
@@ -53,13 +54,13 @@ function OnboardingInner() {
 
   const canNext = () => {
     if (isCreator) {
-      if (step === 0) return name.trim().length > 1;
+      if (step === 0) return name.trim().length > 1 && phone.trim().length >= 8;
       if (step === 1) return city.trim().length > 1;
       if (step === 2) return niche !== "";
       if (step === 3) return handle.trim().length > 1;
       if (step === 4) return rate !== "" && Number(rate) > 0;
     } else {
-      if (step === 0) return name.trim().length > 1;
+      if (step === 0) return name.trim().length > 1 && phone.trim().length >= 8;
       if (step === 1) return company.trim().length > 1;
       if (step === 2) return city.trim().length > 1;
       if (step === 3) return niche !== "";
@@ -74,12 +75,12 @@ function OnboardingInner() {
           role: "creator", full_name: name.trim(), city: city.trim(), niche,
           instagram_handle: handle.replace("@", "").trim(),
           followers: followers ? Number(followers) : null,
-          email: user.email,
+          email: user.email, phone: phone.trim(),
           rate_per_post: Number(rate), onboarding_done: true,
         }
       : {
           role, full_name: name.trim(), company_name: company.trim(),
-          city: city.trim(), niche, email: user.email, onboarding_done: true,
+          city: city.trim(), niche, email: user.email, phone: phone.trim(), onboarding_done: true,
         };
     const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     setSaving(false);
@@ -122,7 +123,10 @@ function OnboardingInner() {
         <div style={{ flex: 1 }}>
           {/* name */}
           {step === 0 && (
+            <>
             <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" style={inputStyle} />
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" style={{ ...inputStyle, marginTop: 12 }} />
+            </>
           )}
 
           {isCreator ? (

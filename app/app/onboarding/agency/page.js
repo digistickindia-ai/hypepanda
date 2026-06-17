@@ -18,6 +18,7 @@ export default function AgencyOnboarding() {
 
   const [agency, setAgency] = useState("");
   const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
   const [team, setTeam] = useState("");
   const [verticals, setVerticals] = useState([]);
   // client brands: array of {name, category}
@@ -45,7 +46,7 @@ export default function AgencyOnboarding() {
 
   const canNext = () => {
     if (step === 0) return agency.trim().length > 1;
-    if (step === 1) return city.trim().length > 1 && team !== "";
+    if (step === 1) return city.trim().length > 1 && team !== "" && phone.trim().length >= 8;
     if (step === 2) return verticals.length > 0;
     if (step === 3) return brands.some((b) => b.name.trim().length > 1);
     return false;
@@ -56,7 +57,7 @@ export default function AgencyOnboarding() {
     const payload = {
       role: "agency", company_name: agency.trim(), full_name: agency.trim(),
       city: city.trim(), team_size: team, verticals: verticals.join(","),
-      email: user.email, onboarding_done: true,
+      email: user.email, phone: phone.trim(), onboarding_done: true,
     };
     const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     if (error) { setSaving(false); alert("Couldn't save: " + error.message); return; }
@@ -93,6 +94,7 @@ export default function AgencyOnboarding() {
           {step === 1 && (
             <div>
               <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City (e.g. Noida)" style={inp} />
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" style={{ ...inp, marginTop: 12 }} />
               <label style={{ ...lbl, marginTop: 18 }}>Team size</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {TEAM.map((t) => <button key={t} onClick={() => setTeam(t)} style={pill(team === t, "var(--yellow)", "#412402")}>{t}</button>)}

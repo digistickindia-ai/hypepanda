@@ -342,8 +342,8 @@ function BusinessHome({ me, router }) {
                   const initials = (c.full_name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
                   return (
                     <div key={c.id} onClick={() => router.push("/app/creator/" + c.id)} className="pressable" style={{ width: 130, flexShrink: 0, background: "#fff", borderRadius: 16, border: proActive(c) ? "2px solid var(--yellow)" : "1.5px solid #efe7d6", padding: 12, cursor: "pointer" }}>
-                      <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 12, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                        <span style={{ fontSize: 26, fontWeight: 800, color: "#fff" }}>{initials}</span>
+                      <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 12, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8, overflow: "hidden" }}>
+                        {c.avatar_url ? <img src={c.avatar_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 26, fontWeight: 800, color: "#fff" }}>{initials}</span>}
                         {proActive(c) && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--yellow)", borderRadius: 8, padding: "2px 5px", display: "flex", alignItems: "center" }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /></span>}
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
@@ -401,8 +401,8 @@ function CreatorCard({ c, onClick }) {
   const proActive = c.is_pro && c.pro_until && new Date(c.pro_until).getTime() > Date.now();
   return (
     <div onClick={onClick} className="pressable" style={{ background: "#fff", borderRadius: 20, padding: 14, border: proActive ? "2px solid var(--yellow)" : "1.5px solid #efe7d6", cursor: "pointer" }}>
-      <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>
+      <div style={{ position: "relative", width: "100%", aspectRatio: "1", borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, overflow: "hidden" }}>
+        {c.avatar_url ? <img src={c.avatar_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 30, fontWeight: 800, color: "#fff" }}>{initials}</span>}
         {proActive && <span style={{ position: "absolute", top: 8, left: 8, background: "var(--yellow)", borderRadius: 10, padding: "3px 8px", display: "flex", alignItems: "center", gap: 3 }}><Icon name="star" size={11} color="#412402" fill="#412402" strokeWidth={1} /><span style={{ fontSize: 10, fontWeight: 800, color: "#412402" }}>PRO</span></span>}
         {c.verification_status === "verified" && <span style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 12, padding: "3px 7px", display: "flex", alignItems: "center" }}><Icon name="check" size={12} color="#173404" strokeWidth={3} /></span>}
       </div>

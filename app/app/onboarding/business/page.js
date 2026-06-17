@@ -22,6 +22,7 @@ export default function BusinessOnboarding() {
   const [website, setWebsite] = useState("");
   const [igHandle, setIgHandle] = useState("");
   const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("all");
   const [audienceCities, setAudienceCities] = useState("");
@@ -38,7 +39,7 @@ export default function BusinessOnboarding() {
   const steps = [
     { title: "What's your brand called?", sub: "The name creators will see." },
     { title: "What do you sell?", sub: "Pick the closest category." },
-    { title: "Where can creators find you?", sub: "Your website and Instagram (optional but builds trust)." },
+    { title: "Where can creators find you?", sub: "Your website, Instagram and phone — phone is required." },
     { title: "Who's your audience?", sub: "This helps us match the right creators." },
     { title: "What creators do you want?", sub: "Pick the niches that fit your brand." },
   ];
@@ -46,7 +47,7 @@ export default function BusinessOnboarding() {
   const canNext = () => {
     if (step === 0) return brand.trim().length > 1;
     if (step === 1) return category !== "";
-    if (step === 2) return true; // optional
+    if (step === 2) return phone.trim().length >= 8;
     if (step === 3) return age !== "";
     if (step === 4) return targetNiches.length > 0;
     return false;
@@ -61,7 +62,7 @@ export default function BusinessOnboarding() {
       category, website: website.trim(), instagram_handle_biz: igHandle.replace("@", "").trim(),
       city: city.trim(), audience_age: age, audience_gender: gender,
       audience_cities: audienceCities.trim(), target_niches: targetNiches.join(","),
-      email: user.email, onboarding_done: true,
+      email: user.email, phone: phone.trim(), onboarding_done: true,
     };
     const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
     setSaving(false);
@@ -106,6 +107,7 @@ export default function BusinessOnboarding() {
                 <input value={igHandle} onChange={(e) => setIgHandle(e.target.value)} placeholder="yourbrand" style={{ ...inp, paddingLeft: 34 }} />
               </div>
               <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City (e.g. Noida)" style={{ ...inp, marginTop: 12 }} />
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" style={{ ...inp, marginTop: 12 }} />
             </div>
           )}
 

@@ -42,8 +42,10 @@ export default function CreatorDetail() {
         <button onClick={() => router.back()} style={{ fontSize: 15, fontWeight: 700, color: "var(--muted)", marginBottom: 16 }}>&#8592; Back</button>
 
         <div style={{ background: col, borderRadius: 28, padding: "32px 24px", textAlign: "center", marginBottom: 16 }}>
-          <div style={{ width: 92, height: 92, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-            <span style={{ fontSize: 36, fontWeight: 800, color: col }}>{initials}</span>
+          <div style={{ width: 92, height: 92, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", overflow: "hidden" }}>
+            {creator.avatar_url
+              ? <img src={creator.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontSize: 36, fontWeight: 800, color: col }}>{initials}</span>}
           </div>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#fff" }}>{creator.full_name}</div>
           <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>

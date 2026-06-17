@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loadMe, inr, fmtFollowers, isProActive } from "@/lib/me";
-import { uploadPhoto, MAX_PHOTO_MB } from "@/lib/storage";
+import { uploadPhoto, uploadAvatar, MAX_PHOTO_MB } from "@/lib/storage";
 import Panda from "../../Panda";
 import Icon from "../../Icon";
 import TabBar from "../TabBar";
@@ -19,6 +19,20 @@ function ProfileInner() {
   const [viewCount, setViewCount] = useState(0);
   const [igUrl, setIgUrl] = useState("");
   const [vBusy, setVBusy] = useState(false);
+  const avatarRef = useRef(null);
+
+  const changeAvatar = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { alert("Please pick an image under 8MB."); return; }
+    try {
+      const { url } = await uploadAvatar(me.supabase, me.profile.id, file);
+      await me.supabase.from("profiles").update({ avatar_url: url }).eq("id", me.profile.id);
+      setMe({ ...me, profile: { ...me.profile, avatar_url: url } });
+    } catch (err) {
+      alert("Couldn't upload: " + (err.message || err));
+    }
+  };
   const [tab, setTab] = useState("photos");
   const [uploading, setUploading] = useState(false);
 
@@ -94,8 +108,20 @@ function ProfileInner() {
 
         {/* Profile header */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
-          <div style={{ width: 78, height: 78, borderRadius: "50%", background: col, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>{initials}</span>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <div onClick={() => isCreator && avatarRef.current?.click()} style={{ width: 78, height: 78, borderRadius: "50%", background: col, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", cursor: isCreator ? "pointer" : "default" }}>
+              {p.avatar_url
+                ? <img src={p.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <span style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>{initials}</span>}
+            </div>
+            {isCreator && (
+              <>
+                <button onClick={() => avatarRef.current?.click()} style={{ position: "absolute", bottom: -2, right: -2, width: 28, height: 28, borderRadius: "50%", background: "var(--ink)", border: "2px solid var(--cream)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <Icon name="camera" size={14} color="#fff" />
+                </button>
+                <input ref={avatarRef} type="file" accept="image/*" onChange={changeAvatar} style={{ display: "none" }} />
+              </>
+            )}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}>

@@ -31,6 +31,16 @@ export default function AdminVerify() {
     setBusy(null);
   };
 
+  const updateFollowers = async (c) => {
+    const v = followerInputs[c.id];
+    const n = v != null && v !== "" ? Number(v) : null;
+    setBusy(c.id);
+    const { error } = await supabase.from("profiles").update({ followers: n }).eq("id", c.id);
+    if (error) { setBusy(null); alert("Couldn't update: " + error.message); return; }
+    await load(supabase);
+    setBusy(null);
+  };
+
   const reject = async (c) => {
     setBusy(c.id);
     const { error } = await supabase.from("profiles").update({ verification_status: "rejected" }).eq("id", c.id);
@@ -85,7 +95,13 @@ export default function AdminVerify() {
                   </>
                 )}
                 {tab === "verified" && (
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)" }}>✓ Verified · {c.followers != null ? fmtFollowers(c.followers) + " followers" : "live"}</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)", marginBottom: 10 }}>✓ Verified · {c.followers != null ? fmtFollowers(c.followers) + " followers" : "live"}</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input type="number" value={followerInputs[c.id] ?? (c.followers ?? "")} onChange={(e) => setFollowerInputs({ ...followerInputs, [c.id]: e.target.value })} placeholder="Update followers" style={{ flex: 1, padding: "10px 12px", fontSize: 14, fontWeight: 600, border: "2px solid #e8dfcc", borderRadius: 12, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                      <button onClick={() => updateFollowers(c)} disabled={busy === c.id} style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "10px 16px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>Save</button>
+                    </div>
+                  </div>
                 )}
                 {tab === "rejected" && (
                   <button onClick={() => approve(c)} disabled={busy === c.id} style={{ width: "100%", background: "var(--green)", color: "#173404", border: "none", borderRadius: 14, padding: "10px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>Verify after all</button>
