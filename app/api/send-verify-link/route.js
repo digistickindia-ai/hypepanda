@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Sends a verification LINK via Brevo's transactional email API.
-// Requires env vars: BREVO_API_KEY, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL
+// Sends a verification LINK via Resend's transactional email API.
+// Requires env vars: RESEND_API_KEY, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL
 export async function POST(request) {
   try {
     const { user_id, email, name } = await request.json();
     if (!user_id || !email) return NextResponse.json({ error: "missing user_id/email" }, { status: 400 });
 
-    const brevoKey = process.env.BREVO_API_KEY;
+    const resendKey = process.env.RESEND_API_KEY;
     const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!brevoKey || !serviceKey) return NextResponse.json({ error: "server not configured" }, { status: 200 });
+    if (!resendKey || !serviceKey) return NextResponse.json({ error: "server not configured" }, { status: 200 });
 
     // service-role client to write the token (bypasses RLS safely on the server)
     const supabase = createClient(supaUrl, serviceKey);
 
-    // create a token row
     const { data: row, error: insErr } = await supabase
       .from("email_verifications")
       .insert({ user_id, email })
@@ -37,20 +36,20 @@ export async function POST(request) {
       <p style="color:#a89e8e;font-size:12px;margin-top:24px">HypePanda · a brand of Digistick Services Pvt. Ltd. · support@hypepanda.in</p>
     </div>`;
 
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { "api-key": brevoKey, "Content-Type": "application/json", "Accept": "application/json" },
+      headers: { "Authorization": "Bearer " + resendKey, "Content-Type": "application/json" },
       body: JSON.stringify({
-        sender: { name: "HypePanda", email: "support@hypepanda.in" },
-        to: [{ email, name: first }],
+        from: "HypePanda <support@hypepanda.in>",
+        to: [email],
         subject: "Verify your email · HypePanda",
-        htmlContent: html,
+        html,
       }),
     });
 
     if (!res.ok) {
       const t = await res.text();
-      return NextResponse.json({ error: "brevo: " + t }, { status: 200 });
+      return NextResponse.json({ error: "resend: " + t }, { status: 200 });
     }
     return NextResponse.json({ ok: true });
   } catch (e) {
