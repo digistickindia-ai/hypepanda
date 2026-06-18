@@ -26,16 +26,6 @@ function SignInInner() {
   const params = useSearchParams();
   const role = params.get("role") || "creator";
 
-  const signInWithGoogle = async () => {
-    const supabase = createClient();
-    const next = encodeURIComponent(`/app/home?role=${role}`);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
-    });
-    if (error) alert("Sign-in error: " + error.message);
-  };
-
   return (
     <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center", overflow: "hidden" }}>
       <style>{`
@@ -61,9 +51,6 @@ function SignInInner() {
           </div>
           <p style={{ fontSize: 15, color: "var(--muted)", fontWeight: 600, marginBottom: 22, marginTop: 8 }}>Where brands &amp; creators meet</p>
 
-          <button className="pressable" onClick={signInWithGoogle} style={{ width: "100%", background: "#fff", color: "var(--ink)", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 14 }}>
-            <span style={{ color: "#EA4335", fontWeight: 800, fontSize: 19 }}>G</span> Sign in with Google
-          </button>
           <button className="pressable" onClick={() => window.location.href = "/app/email?role=" + role} style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "2.5px solid var(--ink)", borderRadius: 32, padding: "16px", fontSize: 17, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 6L2 7" /></svg> Continue with email
           </button>
