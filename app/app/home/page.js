@@ -95,6 +95,7 @@ function CreatorHome({ me, router }) {
 
   return (
     <Shell>
+      <VerifyBanner me={me} />
       {/* Greeting + earnings chip */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
         <div>
@@ -298,6 +299,7 @@ function BusinessHome({ me, router }) {
 
   return (
     <Shell>
+      <VerifyBanner me={me} />
       {/* Greeting + active deals chip */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
         <div>
@@ -444,6 +446,38 @@ function Shell({ children }) {
     <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
       <div style={{ flex: 1, padding: "28px 22px 20px", overflowY: "auto" }}>{children}</div>
       <TabBar />
+    </div>
+  );
+}
+
+function VerifyBanner({ me }) {
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const p = me.profile;
+  if (p.email_verified) return null;
+
+  const resend = async () => {
+    setBusy(true);
+    try {
+      await fetch("/api/send-verify-link", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: p.id, email: p.email, name: p.full_name }),
+      });
+      setSent(true);
+    } catch (e) {}
+    setBusy(false);
+  };
+
+  return (
+    <div style={{ background: "#FDF0D5", border: "1.5px solid #F4C542", borderRadius: 16, padding: "13px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#854F0B", lineHeight: 1.4 }}>
+        {sent ? "Verification link sent! Check your inbox (and spam)." : "Please verify your email to unlock everything."}
+      </div>
+      {!sent && (
+        <button onClick={resend} disabled={busy} style={{ background: "#1c1c1c", color: "#fff", border: "none", borderRadius: 12, padding: "8px 16px", fontSize: 13, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}>
+          {busy ? "Sending…" : "Send link"}
+        </button>
+      )}
     </div>
   );
 }

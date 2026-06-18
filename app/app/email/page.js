@@ -45,14 +45,27 @@ function EmailAuthInner() {
     if (!email || !password) { setErr("Enter email and password."); return; }
     if (password.length < 6) { setErr("Password must be at least 6 characters."); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { emailRedirectTo: undefined },
     });
+    if (error) { setBusy(false); setErr(error.message); return; }
+
+    // Sign them in immediately so they can browse; verification is a soft gate.
+    await supabase.auth.signInWithPassword({ email, password });
+
+    // Send the verification LINK via Brevo (our own route, not Supabase SMTP).
+    const uid = data?.user?.id;
+    if (uid) {
+      try {
+        await fetch("/api/send-verify-link", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: uid, email }),
+        });
+      } catch (e) {}
+    }
     setBusy(false);
-    if (error) { setErr(error.message); return; }
-    setMsg("We sent a verification code to your email. Enter it below to verify.");
-    setMode("verify");
+    router.replace("/app/home?role=" + role);
   };
 
   // ---- VERIFY OTP (after signup) ----
