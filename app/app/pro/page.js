@@ -47,10 +47,34 @@ function ProInner() {
     try {
       const r = await fetch("/api/pro-pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       const j = await r.json();
-      if (!j.paymentSessionId) { alert(j.error || "Couldn't start payment. Make sure Cashfree keys are set."); setBusy(false); return; }
-      if (!window.Cashfree) { alert("Payment SDK still loading, try again in a second."); setBusy(false); return; }
-      const cf = window.Cashfree({ mode: j.mode === "production" ? "production" : "sandbox" });
-      cf.checkout({ paymentSessionId: j.paymentSessionId, redirectTarget: "_self" });
+      if (!j.txnToken) { alert(j.error || "Couldn't start payment. Make sure Paytm keys are set."); setBusy(false); return; }
+
+      const host = j.mode === "production" ? "https://securegw.paytm.in" : "https://securegw-stage.paytm.in";
+
+      const launch = () => {
+        if (!window.Paytm || !window.Paytm.CheckoutJS) { alert("Payment SDK still loading, try again in a second."); setBusy(false); return; }
+        const config = {
+          root: "",
+          flow: "DEFAULT",
+          data: { orderId: j.orderId, token: j.txnToken, tokenType: "TXN_TOKEN", amount: String(j.amount) },
+          handler: {
+            notifyMerchant: function (eventName) {
+              if (eventName === "APP_CLOSED") setBusy(false);
+            },
+          },
+        };
+        window.Paytm.CheckoutJS.init(config).then(() => { window.Paytm.CheckoutJS.invoke(); }).catch(() => setBusy(false));
+      };
+
+      // load Paytm checkout script for this merchant if not present
+      if (window.Paytm && window.Paytm.CheckoutJS) { launch(); }
+      else {
+        const s = document.createElement("script");
+        s.src = `${host}/merchantpgpui/checkoutjs/merchants/${j.mid}.js`;
+        s.onload = launch;
+        s.onerror = () => { alert("Couldn't load Paytm. Check your connection and try again."); setBusy(false); };
+        document.body.appendChild(s);
+      }
     } catch (e) { alert("Payment error: " + e.message); setBusy(false); }
   };
 

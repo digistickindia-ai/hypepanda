@@ -1,46 +1,53 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
+import { paytmChecksum, paytmBase } from "@/lib/paytm";
 
 const PRO_DAYS = 30;
 
-// Cashfree redirects here after payment. We verify the order, and if paid,
-// activate a 30-day Pro pass for the creator.
-export async function GET(request) {
+// Paytm redirects here (POST) after payment. We verify the transaction
+// status server-to-server, and if successful, activate a 30-day Pro pass.
+async function handle(request) {
   const url = new URL(request.url);
   const orderId = url.searchParams.get("order");
   const origin = url.origin;
 
-  const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const mid = process.env.PAYTM_MID;
+  const key = process.env.PAYTM_MERCHANT_KEY;
+  const mode = process.env.PAYTM_MODE || "production";
 
-  const appId = process.env.CASHFREE_APP_ID;
-  const secret = process.env.CASHFREE_SECRET_KEY;
-  const mode = process.env.CASHFREE_MODE || "sandbox";
-  const base = mode === "production" ? "https://api.cashfree.com" : "https://sandbox.cashfree.com";
+  const supabase = createClient(supaUrl, serviceKey);
 
   try {
-    const res = await fetch(base + "/pg/orders/" + orderId, {
-      headers: { "x-api-version": "2023-08-01", "x-client-id": appId, "x-client-secret": secret },
-    });
-    const order = await res.json();
+    // Verify via Paytm's transaction status API (don't trust the redirect alone)
+    const body = { mid, orderId };
+    const signature = await paytmChecksum(JSON.stringify(body), key);
+    const base = paytmBase(mode);
 
-    if (order.order_status === "PAID") {
+    const res = await fetch(`${base}/v3/order/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body, head: { signature } }),
+    });
+    const data = await res.json();
+    const status = data?.body?.resultInfo?.resultStatus;
+
+    if (status === "TXN_SUCCESS") {
       const { data: pay } = await supabase.from("pro_payments").select("*").eq("cf_order_id", orderId).single();
       if (pay && pay.status !== "paid") {
         const until = new Date(Date.now() + PRO_DAYS * 24 * 60 * 60 * 1000).toISOString();
         await supabase.from("pro_payments").update({ status: "paid" }).eq("cf_order_id", orderId);
         await supabase.from("profiles").update({ is_pro: true, pro_until: until }).eq("id", pay.creator_id);
-        await supabase.from("notifications").insert({ user_id: pay.creator_id, kind: "payment", text: "You're now HypePanda Pro! Featured placement, lower fees & more are live for 30 days. 🐼✨", link: "/app/profile" });
+        await supabase.from("notifications").insert({ user_id: pay.creator_id, kind: "payment", text: "You're now HypePanda Pro! Featured placement, lower fees & more are live for 30 days.", link: "/app/profile" });
       }
-      return NextResponse.redirect(origin + "/app/pro?status=success");
+      return NextResponse.redirect(origin + "/app/pro?status=success", 303);
     }
-    return NextResponse.redirect(origin + "/app/pro?status=failed");
+    return NextResponse.redirect(origin + "/app/pro?status=failed", 303);
   } catch (e) {
-    return NextResponse.redirect(origin + "/app/pro?status=error");
+    return NextResponse.redirect(origin + "/app/pro?status=error", 303);
   }
 }
+
+export async function POST(request) { return handle(request); }
+export async function GET(request) { return handle(request); }

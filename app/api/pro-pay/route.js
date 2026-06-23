@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { paytmChecksum, paytmBase } from "@/lib/paytm";
 
 const PRO_PRICE = 499;
 
-// Creates a Cashfree one-time order for a 30-day Pro pass.
+// Creates a Paytm transaction token for a 30-day Pro pass.
 export async function POST(request) {
   try {
     const cookieStore = cookies();
@@ -22,49 +23,47 @@ export async function POST(request) {
       return NextResponse.json({ error: "Only creators can buy Pro" }, { status: 403 });
     }
 
-    const appId = process.env.CASHFREE_APP_ID;
-    const secret = process.env.CASHFREE_SECRET_KEY;
-    const mode = process.env.CASHFREE_MODE || "sandbox";
-    if (!appId || !secret) {
-      return NextResponse.json({ error: "Cashfree keys not set yet. Add them in Vercel env vars." }, { status: 400 });
+    const mid = process.env.PAYTM_MID;
+    const key = process.env.PAYTM_MERCHANT_KEY;
+    const mode = process.env.PAYTM_MODE || "production";
+    if (!mid || !key) {
+      return NextResponse.json({ error: "Paytm keys not set yet. Add PAYTM_MID and PAYTM_MERCHANT_KEY in Vercel env vars." }, { status: 400 });
     }
 
-    const base = mode === "production" ? "https://api.cashfree.com" : "https://sandbox.cashfree.com";
     const origin = new URL(request.url).origin;
     const orderId = "pro_" + user.id.slice(0, 8) + "_" + Date.now();
 
     await supabase.from("pro_payments").insert({ creator_id: user.id, amount: PRO_PRICE, cf_order_id: orderId, status: "created" });
 
-    const res = await fetch(base + "/pg/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-version": "2023-08-01",
-        "x-client-id": appId,
-        "x-client-secret": secret,
-      },
-      body: JSON.stringify({
-        order_id: orderId,
-        order_amount: PRO_PRICE,
-        order_currency: "INR",
-        customer_details: {
-          customer_id: user.id,
-          customer_email: user.email || "creator@hypepanda.app",
-          customer_phone: "9999999999",
-        },
-        order_meta: {
-          return_url: origin + "/api/pro-webhook?order=" + orderId,
-        },
-        order_note: "HypePanda Pro — 30 day pass",
-      }),
-    });
+    const callbackUrl = origin + "/api/pro-webhook?order=" + orderId;
 
+    const body = {
+      requestType: "Payment",
+      mid,
+      websiteName: mode === "production" ? "DEFAULT" : "WEBSTAGING",
+      orderId,
+      callbackUrl,
+      txnAmount: { value: String(PRO_PRICE), currency: "INR" },
+      userInfo: { custId: user.id },
+    };
+
+    const signature = await paytmChecksum(JSON.stringify(body), key);
+    const base = paytmBase(mode);
+
+    const res = await fetch(`${base}/theia/api/v1/initiateTransaction?mid=${mid}&orderId=${orderId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body, head: { signature } }),
+    });
     const data = await res.json();
-    if (!data.payment_session_id) {
-      return NextResponse.json({ error: data.message || "Could not create order" }, { status: 400 });
+
+    const txnToken = data?.body?.txnToken;
+    if (!txnToken) {
+      return NextResponse.json({ error: "Paytm: " + (data?.body?.resultInfo?.resultMsg || "could not start payment") }, { status: 400 });
     }
-    return NextResponse.json({ paymentSessionId: data.payment_session_id, orderId, mode });
+
+    return NextResponse.json({ txnToken, orderId, mid, amount: PRO_PRICE, mode, callbackUrl });
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
