@@ -20,6 +20,7 @@ function EmailAuthInner() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [agreed, setAgreed] = useState(false);
 
   const go = (m) => { setMode(m); setErr(""); setMsg(""); };
 
@@ -90,17 +91,19 @@ function EmailAuthInner() {
     router.replace("/app/home?role=" + role);
   };
 
-  // ---- FORGOT: send OTP code to reset ----
+  // ---- FORGOT: send reset LINK via Resend ----
   const sendResetOtp = async () => {
     setErr(""); setMsg("");
     if (!email) { setErr("Enter your email first."); return; }
     setBusy(true);
-    // signInWithOtp sends an email OTP code the user can use to get in
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    try {
+      await fetch("/api/send-reset-link", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    } catch (e) {}
     setBusy(false);
-    if (error) { setErr(error.message); return; }
-    setMsg("We sent a code to your email.");
-    setMode("reset");
+    setMsg("If an account exists for that email, we've sent a password reset link. Check your inbox (and spam).");
   };
 
   // ---- RESET: verify the OTP, then set a new password ----
@@ -162,14 +165,27 @@ function EmailAuthInner() {
           <Field type="password" placeholder="New password" value={password} onChange={setPassword} />
         )}
 
+        {/* Consent checkbox — signup only */}
+        {mode === "signup" && (
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "4px 2px 14px", cursor: "pointer" }}>
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 20, height: 20, marginTop: 1, accentColor: "var(--ink)", flexShrink: 0, cursor: "pointer" }} />
+            <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, lineHeight: 1.5 }}>
+              I have read and agree to HypePanda&apos;s{" "}
+              <a href="/legal/terms" target="_blank" style={{ color: "var(--ink)", fontWeight: 800 }}>Terms &amp; Conditions</a>{" "}
+              and{" "}
+              <a href="/legal/privacy" target="_blank" style={{ color: "var(--ink)", fontWeight: 800 }}>Privacy Policy</a>, including identity verification (KYC) for creators.
+            </span>
+          </label>
+        )}
+
         {/* primary action */}
-        <button className="pressable" disabled={busy} onClick={() => {
+        <button className="pressable" disabled={busy || (mode === "signup" && !agreed)} onClick={() => {
           if (mode === "login") login();
-          else if (mode === "signup") signUp();
+          else if (mode === "signup") { if (!agreed) { setErr("Please accept the Terms & Privacy Policy to continue."); return; } signUp(); }
           else if (mode === "verify") verifyOtp();
           else if (mode === "forgot") sendResetOtp();
           else if (mode === "reset") verifyResetOtp();
-        }} style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 28, padding: "16px", fontSize: 16, fontWeight: 800, marginTop: 6 }}>
+        }} style={{ width: "100%", background: (mode === "signup" && !agreed) ? "#c9c1b3" : "var(--ink)", color: "#fff", border: "none", borderRadius: 28, padding: "16px", fontSize: 16, fontWeight: 800, marginTop: 6 }}>
           {busy ? "Please wait…" :
             mode === "login" ? "Log in" :
             mode === "signup" ? "Sign up" :
