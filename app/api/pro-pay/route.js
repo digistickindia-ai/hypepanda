@@ -23,9 +23,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "Only creators can buy Pro" }, { status: 403 });
     }
 
-    const mid = process.env.PAYTM_MID;
-    const key = process.env.PAYTM_MERCHANT_KEY;
-    const mode = process.env.PAYTM_MODE || "production";
+    const mid = (process.env.PAYTM_MID || "").trim();
+    const key = (process.env.PAYTM_MERCHANT_KEY || "").trim();
+    const mode = (process.env.PAYTM_MODE || "production").trim();
     if (!mid || !key) {
       return NextResponse.json({ error: "Paytm keys not set yet. Add PAYTM_MID and PAYTM_MERCHANT_KEY in Vercel env vars." }, { status: 400 });
     }
@@ -48,13 +48,25 @@ export async function POST(request) {
     };
 
     const bodyStr = JSON.stringify(body);
-    const signature = await paytmChecksum(bodyStr, key);
+    let signature;
+    try {
+      signature = await paytmChecksum(bodyStr, key);
+    } catch (e) {
+      if (String(e).includes("Invalid key length")) {
+        return NextResponse.json({ error: `Paytm Merchant Key looks wrong (length ${key.length}). It should be your exact Merchant Key from the Paytm dashboard — re-copy it with no extra spaces.` }, { status: 400 });
+      }
+      throw e;
+    }
     const base = paytmBase(mode);
+
+    // Build the payload by concatenation so the EXACT signed bodyStr is sent
+    // (re-serializing via JSON.stringify({body,...}) can change bytes and break checksum 501).
+    const payload = `{"body":${bodyStr},"head":{"signature":"${signature}"}}`;
 
     const res = await fetch(`${base}/theia/api/v1/initiateTransaction?mid=${mid}&orderId=${orderId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body, head: { signature } }),
+      body: payload,
     });
     const data = await res.json();
 

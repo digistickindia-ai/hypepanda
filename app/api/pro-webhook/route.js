@@ -13,9 +13,9 @@ async function handle(request) {
 
   const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const mid = process.env.PAYTM_MID;
-  const key = process.env.PAYTM_MERCHANT_KEY;
-  const mode = process.env.PAYTM_MODE || "production";
+  const mid = (process.env.PAYTM_MID || "").trim();
+  const key = (process.env.PAYTM_MERCHANT_KEY || "").trim();
+  const mode = (process.env.PAYTM_MODE || "production").trim();
 
   const supabase = createClient(supaUrl, serviceKey);
 
@@ -26,10 +26,11 @@ async function handle(request) {
     const signature = await paytmChecksum(bodyStr, key);
     const base = paytmBase(mode);
 
+    const payload = `{"body":${bodyStr},"head":{"signature":"${signature}"}}`;
     const res = await fetch(`${base}/v3/order/status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body, head: { signature } }),
+      body: payload,
     });
     const data = await res.json();
     const status = data?.body?.resultInfo?.resultStatus;
