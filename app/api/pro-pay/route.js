@@ -60,7 +60,14 @@ export async function POST(request) {
 
     const txnToken = data?.body?.txnToken;
     if (!txnToken) {
-      return NextResponse.json({ error: "Paytm: " + (data?.body?.resultInfo?.resultMsg || "could not start payment") }, { status: 400 });
+      const ri = data?.body?.resultInfo || {};
+      const detail = [ri.resultMsg, ri.resultCode ? "code " + ri.resultCode : null, ri.resultStatus]
+        .filter(Boolean).join(" · ");
+      // include the raw response too, so nothing is hidden while debugging
+      return NextResponse.json({
+        error: "Paytm: " + (detail || "could not start payment"),
+        paytmRaw: data,
+      }, { status: 400 });
     }
 
     return NextResponse.json({ txnToken, orderId, mid, amount: PRO_PRICE, mode, callbackUrl });

@@ -47,6 +47,7 @@ function ProInner() {
     try {
       const r = await fetch("/api/pro-pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       const j = await r.json();
+      if (j.paytmRaw) console.log("Paytm raw response:", j.paytmRaw);
       if (!j.txnToken) { alert(j.error || "Couldn't start payment. Make sure Paytm keys are set."); setBusy(false); return; }
 
       const host = j.mode === "production" ? "https://securegw.paytm.in" : "https://securegw-stage.paytm.in";
