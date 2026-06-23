@@ -47,7 +47,8 @@ export async function POST(request) {
       userInfo: { custId: user.id },
     };
 
-    const signature = await paytmChecksum(JSON.stringify(body), key);
+    const bodyStr = JSON.stringify(body);
+    const signature = await paytmChecksum(bodyStr, key);
     const base = paytmBase(mode);
 
     const res = await fetch(`${base}/theia/api/v1/initiateTransaction?mid=${mid}&orderId=${orderId}`, {

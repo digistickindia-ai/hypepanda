@@ -22,7 +22,8 @@ async function handle(request) {
   try {
     // Verify via Paytm's transaction status API (don't trust the redirect alone)
     const body = { mid, orderId };
-    const signature = await paytmChecksum(JSON.stringify(body), key);
+    const bodyStr = JSON.stringify(body);
+    const signature = await paytmChecksum(bodyStr, key);
     const base = paytmBase(mode);
 
     const res = await fetch(`${base}/v3/order/status`, {
