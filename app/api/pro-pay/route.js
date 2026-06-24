@@ -32,6 +32,9 @@ export async function POST(request) {
 
     const origin = new URL(request.url).origin;
     const orderId = "pro_" + user.id.slice(0, 8) + "_" + Date.now();
+    // Paytm custId should be alphanumeric and reasonably short; a raw UUID with
+    // hyphens can be rejected. Strip hyphens and cap length.
+    const custId = ("c" + user.id.replace(/-/g, "")).slice(0, 30);
 
     await supabase.from("pro_payments").insert({ creator_id: user.id, amount: PRO_PRICE, cf_order_id: orderId, status: "created" });
 
@@ -44,7 +47,7 @@ export async function POST(request) {
       orderId,
       callbackUrl,
       txnAmount: { value: String(PRO_PRICE), currency: "INR" },
-      userInfo: { custId: user.id },
+      userInfo: { custId },
     };
 
     const bodyStr = JSON.stringify(body);
