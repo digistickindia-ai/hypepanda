@@ -15,6 +15,8 @@ export default function AdminMessages() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
+  const activeRef = useRef(null);
+  useEffect(() => { activeRef.current = active; }, [active]);
 
   const loadThreads = async () => {
     // pull all messages, group by user_id, newest first
@@ -37,6 +39,29 @@ export default function AdminMessages() {
   };
 
   useEffect(() => { if (!adminLoading && supabase) loadThreads(); }, [adminLoading, supabase]);
+
+  // Realtime: admin sees ALL inserts across team_messages (no user filter).
+  useEffect(() => {
+    if (adminLoading || !supabase) return;
+    const ch = supabase
+      .channel("admin_team_messages")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "team_messages" }, (payload) => {
+        const m = payload.new;
+        // if it belongs to the open thread, append it live
+        if (activeRef.current && m.user_id === activeRef.current) {
+          setMsgs((cur) => cur.some((x) => x.id === m.id) ? cur : [...cur, m]);
+          // it's a user message arriving while open → mark read by team
+          if (!m.from_team) {
+            supabase.from("team_messages").update({ read_by_team: true }).eq("id", m.id).then(() => {});
+          }
+        }
+        // refresh the thread list (unread counts, ordering, new threads)
+        loadThreads();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [adminLoading, supabase]);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
   const openThread = async (uid) => {

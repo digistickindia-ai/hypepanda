@@ -50,6 +50,7 @@ export default function Landing() {
 
   return (
     <main style={{ background: "var(--cream)", minHeight: "100dvh" }}>
+      <div style={{ position: "fixed", top: 6, right: 8, fontSize: 10, fontWeight: 700, color: "#b3a994", zIndex: 9999 }}>build v25</div>
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
 
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px" }}>
