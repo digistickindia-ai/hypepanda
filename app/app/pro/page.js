@@ -28,17 +28,28 @@ function ProInner() {
     if (status === "success") setBanner("Welcome to Pro! Your perks are now live.");
     if (status === "failed") setBanner("Payment didn't go through. You can try again.");
     if (status === "error") setBanner("Something went wrong verifying payment. If money was deducted, it'll reflect shortly.");
-    // load Cashfree SDK
-    const s = document.createElement("script");
-    s.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
-    s.async = true;
-    document.body.appendChild(s);
     (async () => {
       const res = await loadMe(router);
       if (!res) return;
       if (res.profile.role !== "creator") { router.replace("/app/home"); return; }
       setMe(res);
       setLoading(false);
+      // Preload the Paytm checkout script as soon as we know the merchant id,
+      // so tapping "Go Pro" launches instantly instead of waiting on a fresh load.
+      try {
+        const pr = await fetch("/api/pro-config");
+        const pj = await pr.json();
+        if (pj.mid) {
+          const host = pj.mode === "production" ? "https://secure.paytmpayments.com" : "https://securegw-stage.paytm.in";
+          if (!document.getElementById("paytm-checkout-js")) {
+            const s = document.createElement("script");
+            s.id = "paytm-checkout-js";
+            s.src = `${host}/merchantpgpui/checkoutjs/merchants/${pj.mid}.js`;
+            s.async = true;
+            document.body.appendChild(s);
+          }
+        }
+      } catch (e) {}
     })();
   }, []);
 
@@ -52,30 +63,40 @@ function ProInner() {
 
       const host = j.mode === "production" ? "https://secure.paytmpayments.com" : "https://securegw-stage.paytm.in";
 
-      const launch = () => {
-        if (!window.Paytm || !window.Paytm.CheckoutJS) { alert("Payment SDK still loading, try again in a second."); setBusy(false); return; }
+      const invoke = () => {
         const config = {
           root: "",
           flow: "DEFAULT",
           data: { orderId: j.orderId, token: j.txnToken, tokenType: "TXN_TOKEN", amount: String(j.amount) },
-          handler: {
-            notifyMerchant: function (eventName) {
-              if (eventName === "APP_CLOSED") setBusy(false);
-            },
-          },
+          handler: { notifyMerchant: (eventName) => { if (eventName === "APP_CLOSED") setBusy(false); } },
         };
-        window.Paytm.CheckoutJS.init(config).then(() => { window.Paytm.CheckoutJS.invoke(); }).catch(() => setBusy(false));
+        window.Paytm.CheckoutJS.init(config)
+          .then(() => { window.Paytm.CheckoutJS.invoke(); setBusy(false); })
+          .catch((err) => { console.error("Paytm init error:", err); alert("Couldn't open Paytm checkout. Please try again."); setBusy(false); });
       };
 
-      // load Paytm checkout script for this merchant if not present
-      if (window.Paytm && window.Paytm.CheckoutJS) { launch(); }
-      else {
+      // Make sure the script is present (it's usually preloaded on page open)
+      if (!document.getElementById("paytm-checkout-js")) {
         const s = document.createElement("script");
+        s.id = "paytm-checkout-js";
         s.src = `${host}/merchantpgpui/checkoutjs/merchants/${j.mid}.js`;
-        s.onload = launch;
-        s.onerror = () => { alert("Couldn't load Paytm. Check your connection and try again."); setBusy(false); };
+        s.async = true;
         document.body.appendChild(s);
       }
+
+      // Poll for the SDK to be ready, up to ~12s, then give a clear error
+      // instead of hanging on "Starting..." forever.
+      let waited = 0;
+      const iv = setInterval(() => {
+        if (window.Paytm && window.Paytm.CheckoutJS) {
+          clearInterval(iv);
+          invoke();
+        } else if ((waited += 300) >= 12000) {
+          clearInterval(iv);
+          alert("Paytm is taking too long to load. Please check your connection and try again.");
+          setBusy(false);
+        }
+      }, 300);
     } catch (e) { alert("Payment error: " + e.message); setBusy(false); }
   };
 
