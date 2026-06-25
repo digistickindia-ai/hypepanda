@@ -26,6 +26,23 @@ export default function AdminUsers() {
     await load(supabase);
     setBusy(null);
   };
+  const deleteUser = async (u) => {
+    const name = u.company_name || u.full_name || "this user";
+    const ok = window.confirm(`Permanently delete ${name}?\n\nThis erases their profile, collaborations, messages, and login account. This CANNOT be undone.`);
+    if (!ok) return;
+    setBusy(u.id);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    const res = await fetch("/api/delete-user", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target_user_id: u.id, caller_token: token }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setBusy(null);
+    if (j.error) { alert("Couldn't delete: " + j.error); return; }
+    if (!j.authDeleted && j.authError) { alert("Data deleted, but login account removal failed: " + j.authError); }
+    await load(supabase);
+  };
   const toggleVerify = async (u) => {
     setBusy(u.id);
     await supabase.from("profiles").update({ instagram_connected: !u.instagram_connected }).eq("id", u.id);
@@ -101,6 +118,11 @@ export default function AdminUsers() {
                 {!u.is_admin && (
                   <button onClick={() => toggleSuspend(u)} disabled={busy === u.id} style={btn(u.suspended ? "var(--green)" : "#fff", u.suspended ? "#173404" : "#A32D2D", true)}>
                     {u.suspended ? "Unsuspend" : "Suspend"}
+                  </button>
+                )}
+                {!u.is_admin && (
+                  <button onClick={() => deleteUser(u)} disabled={busy === u.id} style={btn("#A32D2D", "#fff", false)}>
+                    Delete
                   </button>
                 )}
               </div>
