@@ -16,6 +16,7 @@ export default function AdminCollabs() {
   const [tab, setTab] = useState("requested");
   const [busy, setBusy] = useState(null);
   const [edits, setEdits] = useState({});
+  const [msgDraft, setMsgDraft] = useState({});
 
   const load = async (sb) => {
     const { data } = await sb.from("collaborations").select("*").order("created_at", { ascending: false });
@@ -37,21 +38,48 @@ export default function AdminCollabs() {
     setBusy(c.id);
     const { error } = await supabase.from("collaborations").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", c.id);
     if (error) { setBusy(null); alert("Couldn't update: " + error.message + "\n\nIf this mentions a policy, run collaborations-patch.sql."); return; }
-    // notify both parties on status change
+    // notify + email both parties on status change
     if (patch.status) {
-      const msg = patch.status === "in_progress" ? "Your collaboration is now in progress — our team is coordinating it."
-        : patch.status === "completed" ? "Your collaboration is complete. Thank you!"
-        : patch.status === "cancelled" ? "Your collaboration request was cancelled. Reach out to our team for details."
-        : null;
+      const map = {
+        quoted: "The creator has sent a quotation. Our team is reviewing it and will share details shortly.",
+        confirmed: "Your collaboration is confirmed! Our team will coordinate the deliverables and next steps with you.",
+        in_progress: "Your collaboration is now in progress — our team is coordinating it.",
+        completed: "Your collaboration is complete. Thank you for working with HypePanda!",
+        cancelled: "Your collaboration request was cancelled. Reach out to our team for details.",
+      };
+      const msg = map[patch.status];
       if (msg) {
         await supabase.from("notifications").insert([
           { user_id: c.brand_id, kind: "accepted", text: msg, link: "/app/deals" },
           { user_id: c.creator_id, kind: "accepted", text: msg, link: "/app/deals" },
         ]);
+        // emails (compulsory) to both sides via Resend
+        const subj = "Update on your HypePanda collaboration";
+        for (const uid of [c.brand_id, c.creator_id]) {
+          fetch("/api/send-email", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to_user_id: uid, subject: subj, heading: "Collaboration update", message: msg, ctaText: "View in HypePanda", ctaLink: "https://www.hypepanda.in/app/deals" }),
+          }).catch(() => {});
+        }
       }
     }
     await load(supabase);
     setBusy(null);
+  };
+
+  // Team sends a direct message (in-app + email) to one party of the collab
+  const messageUser = async (c, uid, body) => {
+    if (!body.trim()) return;
+    setBusy(c.id);
+    await supabase.from("team_messages").insert({ user_id: uid, collab_id: c.id, from_team: true, body: body.trim(), read_by_team: true });
+    await supabase.from("notifications").insert({ user_id: uid, kind: "message", text: "The HypePanda team sent you a message.", link: "/app/chat" });
+    fetch("/api/send-email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to_user_id: uid, subject: "Message from the HypePanda team", heading: "You have a new message", message: body.trim(), ctaText: "Reply in HypePanda", ctaLink: "https://www.hypepanda.in/app/chat" }),
+    }).catch(() => {});
+    setMsgDraft({ ...msgDraft, [uid]: "" });
+    setBusy(null);
+    alert("Message sent (in-app + email).");
   };
 
   if (loading) return <AdminShell><p style={{ color: "var(--muted)", fontWeight: 600 }}>Loading…</p></AdminShell>;
@@ -116,6 +144,17 @@ export default function AdminCollabs() {
 
                 <textarea defaultValue={c.team_notes ?? ""} onChange={(ev) => setEdits({ ...edits, [c.id]: { ...e, notes: ev.target.value } })} placeholder="Internal team notes (only you see this)" style={{ ...inp, width: "100%", minHeight: 54, resize: "vertical", boxSizing: "border-box" }} />
                 <button onClick={() => update(c, { team_notes: e.notes ?? c.team_notes })} disabled={busy === c.id} style={{ ...smallBtn, marginTop: 6 }}>Save notes</button>
+
+                {/* team → message either party (in-app + email) */}
+                <div style={{ borderTop: "1px solid #f1ead9", marginTop: 14, paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[["brand", c.brand_id, "brand"], ["creator", c.creator_id, "creator"]].map(([label, uid]) => (
+                    <div key={uid}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 5 }}>Message {label}</div>
+                      <textarea value={msgDraft[uid] || ""} onChange={(e) => setMsgDraft({ ...msgDraft, [uid]: e.target.value })} placeholder={`Write to the ${label}…`} style={{ width: "100%", minHeight: 46, fontSize: 13, fontWeight: 500, border: "2px solid #e8dfcc", borderRadius: 10, padding: "8px 10px", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" }} />
+                      <button onClick={() => messageUser(c, uid, msgDraft[uid] || "")} disabled={busy === c.id || !(msgDraft[uid] || "").trim()} style={{ ...smallBtn, marginTop: 6, width: "100%", background: (msgDraft[uid] || "").trim() ? "var(--ink)" : "#d8d0c0" }}>Send + email</button>
+                    </div>
+                  ))}
+                </div>
 
                 {/* status actions */}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14, borderTop: "1px solid #f1ead9", paddingTop: 14 }}>

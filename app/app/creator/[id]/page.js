@@ -63,7 +63,7 @@ export default function CreatorDetail() {
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
           <Stat big={creator.followers != null ? fmtFollowers(creator.followers) : "—"} small="followers" />
           <Stat big={creator.niche} small="niche" />
-          <Stat big={inr(creator.rate_per_post)} small="per post" />
+          <Stat big={creator.city || "—"} small="city" />
         </div>
 
         {creator.bio && (
@@ -120,12 +120,16 @@ function OfferModal({ me, creator, onClose, router }) {
     }).select().single();
     if (error) { setSending(false); alert("Couldn't send: " + error.message + "\n\nIf this mentions a column or policy, run collaborations-flow-patch.sql in Supabase."); return; }
 
-    // notify the creator they've received a collab request
+    // notify the creator they've received a collab request (in-app + email)
     await me.supabase.from("notifications").insert({
       user_id: creator.id, kind: "offer",
       text: `You've received a collaboration request via HypePanda. Tap to send your quotation.`,
       link: "/app/deals",
     });
+    fetch("/api/send-email", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to_user_id: creator.id, subject: "New collaboration request · HypePanda", heading: "You've got a collaboration request", message: "A brand wants to work with you. Our team is coordinating it — open HypePanda to review the brief and send your quotation.", ctaText: "View request", ctaLink: "https://www.hypepanda.in/app/deals" }),
+    }).catch(() => {});
     // notify the HypePanda team (all admins) so they can coordinate
     const { data: admins } = await me.supabase.from("profiles").select("id").eq("is_admin", true);
     if (admins && admins.length) {

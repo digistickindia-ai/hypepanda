@@ -350,7 +350,6 @@ function BusinessHome({ me, router }) {
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.niche}</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--coral)", marginTop: 2 }}>{inr(c.rate_per_post)}</div>
                     </div>
                   );
                 })}
@@ -410,7 +409,6 @@ function CreatorCard({ c, onClick }) {
       </div>
       <div style={{ fontSize: 15, fontWeight: 800, color: "var(--ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.full_name}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>{c.niche} · {c.city}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--coral)" }}>{inr(c.rate_per_post)}<span style={{ color: "var(--faint)", fontWeight: 600 }}>/post</span></div>
     </div>
   );
 }

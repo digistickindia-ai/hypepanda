@@ -46,8 +46,8 @@ export default function Deals() {
   const isCreator = me?.profile?.role === "creator";
 
   return (
-    <main style={{ minHeight: "100dvh", background: "var(--cream)", paddingBottom: 80 }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 20px" }}>
+    <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Collaborations</h1>
         <p style={{ fontSize: 14, color: "var(--muted)", fontWeight: 600, margin: "0 0 20px" }}>Our team coordinates every collaboration with you.</p>
 
@@ -72,10 +72,8 @@ export default function Deals() {
                 {d.brief && <p style={{ fontSize: 13.5, color: "#3a352e", fontWeight: 500, lineHeight: 1.5, margin: "10px 0 0" }}>{d.brief}</p>}
                 {d.deliverables && <p style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600, margin: "6px 0 0" }}>Deliverables: {d.deliverables}</p>}
 
-                {/* status tracker */}
                 <Tracker status={d.status} />
 
-                {/* creator's quote shown once given */}
                 {d.quote_amount != null && (
                   <div style={{ background: "#FBF3E4", borderRadius: 12, padding: "10px 14px", marginTop: 12 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)" }}>Your quote: {inr(d.quote_amount)}</div>
@@ -83,7 +81,6 @@ export default function Deals() {
                   </div>
                 )}
 
-                {/* creator can submit a quote while still 'requested' */}
                 {isCreator && d.status === "requested" && (
                   <button onClick={() => setQuoteFor(d)} className="pressable" style={{ width: "100%", marginTop: 14, background: "var(--ink)", color: "#fff", border: "none", borderRadius: 22, padding: "13px", fontSize: 14, fontWeight: 800 }}>
                     Send your quotation
@@ -101,7 +98,7 @@ export default function Deals() {
 
       {quoteFor && <QuoteModal me={me} collab={quoteFor} onClose={() => setQuoteFor(null)} onDone={() => { setQuoteFor(null); load(); }} />}
       <TabBar active="deals" />
-    </main>
+    </div>
   );
 }
 

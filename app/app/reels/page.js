@@ -146,7 +146,7 @@ function Player({ items, startIdx, isBusiness, onClose, onHire }) {
             </div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", fontWeight: 600, marginTop: 3 }}>{c.city || "India"} · {c.niche}</div>
             {c.followers != null && (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: 2 }}>{fmtFollowers(c.followers)} followers · {inr(c.rate_per_post)}/post</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: 2 }}>{fmtFollowers(c.followers)} followers</div>
             )}
           </div>
           {isBusiness && (
