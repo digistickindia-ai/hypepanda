@@ -14,28 +14,42 @@ export default function AdminMessages() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [threadOffset, setThreadOffset] = useState(0);
   const endRef = useRef(null);
+  const refreshTimer = useRef(null);
   const activeRef = useRef(null);
   useEffect(() => { activeRef.current = active; }, [active]);
 
-  const loadThreads = async () => {
-    // pull all messages, group by user_id, newest first
-    const { data: all } = await supabase.from("team_messages").select("*").order("created_at", { ascending: false });
-    const list = all || [];
-    const byUser = {};
-    for (const m of list) {
-      if (!byUser[m.user_id]) byUser[m.user_id] = { user_id: m.user_id, last: m, unread: 0 };
-      if (!m.from_team && !m.read_by_team) byUser[m.user_id].unread++;
+  const THREAD_PAGE = 30;
+  const loadThreads = async ({ append = false, from = 0 } = {}) => {
+    // Paginated: latest message per thread + unread counts, computed in the DB.
+    const { data, error } = await supabase.rpc("admin_message_threads", { limit_n: THREAD_PAGE, offset_n: from });
+    if (error) {
+      // Fallback to the old method if the function isn't present yet.
+      const { data: all } = await supabase.from("team_messages").select("*").order("created_at", { ascending: false }).limit(500);
+      const byUser = {};
+      for (const m of (all || [])) {
+        if (!byUser[m.user_id]) byUser[m.user_id] = { user_id: m.user_id, last: { body: m.body, from_team: m.from_team }, unread: 0 };
+        if (!m.from_team && !m.read_by_team) byUser[m.user_id].unread++;
+      }
+      const arr = Object.values(byUser);
+      setThreads(arr); setHasMore(false);
+      await hydrateProfiles(arr.map((t) => t.user_id));
+      setLoading(false);
+      return;
     }
-    const arr = Object.values(byUser);
-    setThreads(arr);
-    const ids = arr.map((t) => t.user_id);
-    if (ids.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, company_name, role, email").in("id", ids);
-      const map = {}; (profs || []).forEach((p) => { map[p.id] = p; });
-      setProfiles(map);
-    }
+    const rows = (data || []).map((r) => ({ user_id: r.user_id, last: { body: r.last_body, from_team: r.last_from_team }, unread: r.unread }));
+    setHasMore(rows.length === THREAD_PAGE);
+    setThreads((prev) => append ? [...prev, ...rows] : rows);
+    await hydrateProfiles(rows.map((t) => t.user_id), append);
     setLoading(false);
+  };
+
+  const hydrateProfiles = async (ids, append = false) => {
+    if (!ids.length) return;
+    const { data: profs } = await supabase.from("profiles").select("id, full_name, company_name, role, email").in("id", ids);
+    setProfiles((prev) => { const map = append ? { ...prev } : {}; (profs || []).forEach((p) => { map[p.id] = p; }); return map; });
   };
 
   useEffect(() => { if (!adminLoading && supabase) loadThreads(); }, [adminLoading, supabase]);
@@ -55,14 +69,18 @@ export default function AdminMessages() {
             supabase.from("team_messages").update({ read_by_team: true }).eq("id", m.id).then(() => {});
           }
         }
-        // refresh the thread list (unread counts, ordering, new threads)
-        loadThreads();
+        // refresh the thread list (debounced) so a burst of messages doesn't
+        // trigger a reload per message at scale.
+        clearTimeout(refreshTimer.current);
+        refreshTimer.current = setTimeout(() => { loadThreads({ from: 0 }); setThreadOffset(0); }, 800);
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { supabase.removeChannel(ch); clearTimeout(refreshTimer.current); };
   }, [adminLoading, supabase]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+
+  const loadMoreThreads = async () => { const next = threadOffset + 30; setThreadOffset(next); await loadThreads({ append: true, from: next }); };
 
   const openThread = async (uid) => {
     setActive(uid);
@@ -124,6 +142,7 @@ export default function AdminMessages() {
                 <div style={{ fontSize: 12.5, fontWeight: 500, opacity: 0.85, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.last.from_team ? "You: " : ""}{t.last.body}</div>
               </button>
             ))}
+            {hasMore && <button onClick={loadMoreThreads} style={{ padding: "10px", borderRadius: 12, border: "1.5px solid #e8dfcc", background: "#fff", color: "var(--ink)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>Load more</button>}
           </div>
 
           {/* conversation */}

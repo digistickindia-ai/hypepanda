@@ -11,19 +11,42 @@ export default function AdminUsers() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [busy, setBusy] = useState(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
-  const load = async (sb) => {
-    const { data } = await sb.from("profiles").select("*").order("created_at", { ascending: false });
-    setUsers(data || []);
+  const PAGE = 30;
+  const load = async (sb, { append = false, search = "", roleFilter = "all", from = 0 } = {}) => {
+    let query = sb.from("profiles").select("*").order("created_at", { ascending: false });
+    if (search) {
+      const s = `%${search}%`;
+      query = query.or(`full_name.ilike.${s},instagram_handle.ilike.${s},company_name.ilike.${s}`);
+    }
+    if (roleFilter === "creator") query = query.eq("role", "creator");
+    if (roleFilter === "business") query = query.in("role", ["business", "agency"]);
+    query = query.range(from, from + PAGE - 1);
+    const { data } = await query;
+    const rows = data || [];
+    setHasMore(rows.length === PAGE);
+    setUsers((prev) => append ? [...prev, ...rows] : rows);
   };
-  useEffect(() => { if (supabase) load(supabase); }, [supabase]);
+
+  const reload = async () => { setOffset(0); await load(supabase, { search: q, roleFilter: filter, from: 0 }); };
+  const loadMore = async () => { const next = offset + PAGE; setOffset(next); await load(supabase, { append: true, search: q, roleFilter: filter, from: next }); };
+
+  useEffect(() => { if (supabase) reload(); }, [supabase]);
+  // re-query when filter changes or search is submitted (debounced)
+  useEffect(() => {
+    if (!supabase) return;
+    const t = setTimeout(() => { reload(); }, 300);
+    return () => clearTimeout(t);
+  }, [q, filter]);
 
   const toggleSuspend = async (u) => {
     setBusy(u.id);
     const { data, error } = await supabase.from("profiles").update({ suspended: !u.suspended }).eq("id", u.id).select();
     if (error) { setBusy(null); alert("Couldn't update: " + error.message + "\n\nIf this mentions permission/policy, run fix-admin-suspend.sql in Supabase."); return; }
     if (!data || data.length === 0) { setBusy(null); alert("No row was updated — this is almost always an RLS permission issue. Run fix-admin-suspend.sql in Supabase, and make sure your account has is_admin = true."); return; }
-    await load(supabase);
+    await reload();
     setBusy(null);
   };
   const deleteUser = async (u) => {
@@ -41,12 +64,12 @@ export default function AdminUsers() {
     setBusy(null);
     if (j.error) { alert("Couldn't delete: " + j.error); return; }
     if (!j.authDeleted && j.authError) { alert("Data deleted, but login account removal failed: " + j.authError); }
-    await load(supabase);
+    await reload();
   };
   const toggleVerify = async (u) => {
     setBusy(u.id);
     await supabase.from("profiles").update({ instagram_connected: !u.instagram_connected }).eq("id", u.id);
-    await load(supabase);
+    await reload();
     setBusy(null);
   };
   const togglePro = async (u) => {
@@ -58,17 +81,13 @@ export default function AdminUsers() {
       const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await supabase.from("profiles").update({ is_pro: true, pro_until: until }).eq("id", u.id);
     }
-    await load(supabase);
+    await reload();
     setBusy(null);
   };
 
   if (loading) return <AdminShell><p style={{ color: "var(--muted)", fontWeight: 600 }}>Loading…</p></AdminShell>;
 
-  const filtered = users.filter((u) => {
-    const mq = !q || (u.full_name || "").toLowerCase().includes(q.toLowerCase()) || (u.instagram_handle || "").toLowerCase().includes(q.toLowerCase()) || (u.company_name || "").toLowerCase().includes(q.toLowerCase());
-    const mf = filter === "all" || (filter === "creator" && u.role === "creator") || (filter === "business" && (u.role === "business" || u.role === "agency"));
-    return mq && mf;
-  });
+  const filtered = users;
 
   return (
     <AdminShell>
@@ -129,7 +148,11 @@ export default function AdminUsers() {
             </div>
           );
         })}
+        {filtered.length === 0 && <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: 24, textAlign: "center", color: "var(--muted)", fontWeight: 600 }}>No users found.</div>}
       </div>
+      {hasMore && (
+        <button onClick={loadMore} style={{ width: "100%", marginTop: 14, padding: "13px", borderRadius: 14, border: "2px solid #e8dfcc", background: "#fff", color: "var(--ink)", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>Load more</button>
+      )}
     </AdminShell>
   );
 }
