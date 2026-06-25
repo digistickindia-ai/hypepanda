@@ -20,7 +20,9 @@ export default function AdminUsers() {
 
   const toggleSuspend = async (u) => {
     setBusy(u.id);
-    await supabase.from("profiles").update({ suspended: !u.suspended }).eq("id", u.id);
+    const { data, error } = await supabase.from("profiles").update({ suspended: !u.suspended }).eq("id", u.id).select();
+    if (error) { setBusy(null); alert("Couldn't update: " + error.message + "\n\nIf this mentions permission/policy, run fix-admin-suspend.sql in Supabase."); return; }
+    if (!data || data.length === 0) { setBusy(null); alert("No row was updated — this is almost always an RLS permission issue. Run fix-admin-suspend.sql in Supabase, and make sure your account has is_admin = true."); return; }
     await load(supabase);
     setBusy(null);
   };
