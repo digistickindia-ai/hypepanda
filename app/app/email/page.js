@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { fbTrack } from "@/lib/fbpixel";
 import Logo from "../../Logo";
 
 function EmailAuthInner() {
@@ -71,6 +72,8 @@ function EmailAuthInner() {
       } catch (e) {}
     }
     setBusy(false);
+    // Meta Pixel: signup completed — the conversion the ad campaign optimises toward.
+    fbTrack("CompleteRegistration", { content_name: role, status: true });
     router.replace("/app/home?role=" + role);
   };
 
