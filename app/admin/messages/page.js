@@ -91,15 +91,25 @@ export default function AdminMessages() {
 
   return (
     <AdminShell>
+      <style>{`
+        .msg-grid { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+        .msg-back { display: none; }
+        @media (max-width: 640px) {
+          .msg-grid { grid-template-columns: 1fr; }
+          .msg-list.has-active { display: none !important; }
+          .msg-convo:not(.has-active) { display: none !important; }
+          .msg-back { display: block !important; }
+        }
+      `}</style>
       <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Messages</h1>
       <p style={{ fontSize: 13.5, color: "var(--muted)", fontWeight: 600, margin: "0 0 18px" }}>Every brand and creator talks only to the HypePanda team. Reply here — they get it in-app and by email.</p>
 
       {loading ? <p style={{ color: "var(--muted)", fontWeight: 600 }}>Loading…</p> : threads.length === 0 ? (
         <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: 28, textAlign: "center", color: "var(--muted)", fontWeight: 600 }}>No messages yet.</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 16, alignItems: "start" }}>
+        <div className="msg-grid">
           {/* thread list */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className={"msg-list" + (active ? " has-active" : "")} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {threads.map((t) => (
               <button key={t.user_id} onClick={() => openThread(t.user_id)} style={{
                 textAlign: "left", background: active === t.user_id ? "var(--ink)" : "#fff",
@@ -117,14 +127,17 @@ export default function AdminMessages() {
           </div>
 
           {/* conversation */}
-          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, minHeight: 420, display: "flex", flexDirection: "column" }}>
+          <div className={"msg-convo" + (active ? " has-active" : "")} style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, minHeight: 420, display: "flex", flexDirection: "column" }}>
             {!active ? (
               <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--faint)", fontWeight: 600 }}>Select a conversation</div>
             ) : (
               <>
-                <div style={{ padding: "14px 18px", borderBottom: "1.5px solid #efe7d6" }}>
-                  <div style={{ fontWeight: 800, color: "var(--ink)" }}>{nameOf(active)}</div>
-                  <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>{profiles[active]?.email || ""}</div>
+                <div style={{ padding: "14px 18px", borderBottom: "1.5px solid #efe7d6", display: "flex", alignItems: "center", gap: 10 }}>
+                  <button className="msg-back" onClick={() => setActive(null)} style={{ background: "none", border: "none", fontSize: 20, color: "var(--ink)", cursor: "pointer", padding: 0, lineHeight: 1 }}>←</button>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "var(--ink)" }}>{nameOf(active)}</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>{profiles[active]?.email || ""}</div>
+                  </div>
                 </div>
                 <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8, maxHeight: 420 }}>
                   {msgs.map((m) => (

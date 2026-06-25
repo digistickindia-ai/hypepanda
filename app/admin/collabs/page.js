@@ -120,7 +120,7 @@ export default function AdminCollabs() {
                 {c.quote_amount != null && <div style={{ background: "#EAF4EA", border: "1px solid #cfe6cf", borderRadius: 12, padding: "10px 14px", margin: "8px 0", fontSize: 13, fontWeight: 800, color: "#2f5d22" }}>Creator quoted: ₹{Number(c.quote_amount).toLocaleString("en-IN")}{c.quote_note ? ` — ${c.quote_note}` : ""}</div>}
 
                 {/* contact info for coordination */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "12px 0", fontSize: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, margin: "12px 0", fontSize: 12 }}>
                   <ContactCard label="Brand" p={brand} />
                   <ContactCard label="Creator" p={creator} />
                 </div>
@@ -141,7 +141,7 @@ export default function AdminCollabs() {
                 <button onClick={() => update(c, { team_notes: e.notes ?? c.team_notes })} disabled={busy === c.id} style={{ ...smallBtn, marginTop: 6 }}>Save notes</button>
 
                 {/* team → message either party (in-app + email) */}
-                <div style={{ borderTop: "1px solid #f1ead9", marginTop: 14, paddingTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ borderTop: "1px solid #f1ead9", marginTop: 14, paddingTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
                   {[["brand", c.brand_id, "brand"], ["creator", c.creator_id, "creator"]].map(([label, uid]) => (
                     <div key={uid}>
                       <div style={{ fontSize: 11, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 5 }}>Message {label}</div>

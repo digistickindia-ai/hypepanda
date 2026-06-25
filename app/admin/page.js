@@ -65,9 +65,10 @@ export default function AdminOverview() {
 
 function Card({ label, value, color, dark }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 18, padding: 20, border: "1.5px solid #efe7d6" }}>
-      <div style={{ fontSize: 28, fontWeight: 800, color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
-      <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginTop: 4 }}>{label}</div>
+    <div style={{ position: "relative", background: "#fff", borderRadius: 16, padding: 18, border: "1.5px solid #efe7d6", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: color, opacity: 0.85 }} />
+      <div style={{ fontSize: 26, fontWeight: 800, color, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+      <div style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
