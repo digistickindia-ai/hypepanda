@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import Logo from "../../Logo";
@@ -21,6 +21,11 @@ function EmailAuthInner() {
   const [err, setErr] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const [agreed, setAgreed] = useState(false);
+
+  // If redirected here because the account is suspended, show the message.
+  useEffect(() => {
+    if (params.get("suspended") === "1") { setMode("login"); setErr("SUSPENDED"); }
+  }, []);
 
   const go = (m) => { setMode(m); setErr(""); setMsg(""); };
 
@@ -85,9 +90,20 @@ function EmailAuthInner() {
     setErr(""); setMsg("");
     if (!email || !password) { setErr("Enter email and password."); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setBusy(false); setErr(error.message); return; }
+    // Block suspended accounts right at login
+    const uid = signInData?.user?.id;
+    if (uid) {
+      const { data: prof } = await supabase.from("profiles").select("suspended").eq("id", uid).maybeSingle();
+      if (prof && prof.suspended) {
+        await supabase.auth.signOut();
+        setBusy(false);
+        setErr("SUSPENDED");
+        return;
+      }
+    }
     setBusy(false);
-    if (error) { setErr(error.message); return; }
     router.replace("/app/home?role=" + role);
   };
 
@@ -143,7 +159,13 @@ function EmailAuthInner() {
         </p>
 
         {msg && <div style={{ background: "var(--green)", color: "#173404", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 700, marginBottom: 14 }}>{msg}</div>}
-        {err && <div style={{ background: "#FBE3E0", color: "#A32D2D", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 700, marginBottom: 14 }}>{err}</div>}
+        {err === "SUSPENDED" ? (
+          <div style={{ background: "#FBE3E0", color: "#A32D2D", borderRadius: 14, padding: "14px 16px", fontSize: 13.5, fontWeight: 700, marginBottom: 14, lineHeight: 1.5 }}>
+            Your account has been suspended. Please contact support for more details at <a href="mailto:support@hypepanda.in" style={{ color: "#A32D2D", textDecoration: "underline" }}>support@hypepanda.in</a>.
+          </div>
+        ) : err ? (
+          <div style={{ background: "#FBE3E0", color: "#A32D2D", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 700, marginBottom: 14 }}>{err}</div>
+        ) : null}
 
         {/* EMAIL field — shown in all modes except pure verify */}
         {(mode === "login" || mode === "signup" || mode === "forgot") && (
