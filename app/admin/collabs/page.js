@@ -5,9 +5,9 @@ import AdminShell from "../AdminShell";
 import { useAdmin } from "../useAdmin";
 import { inr } from "@/lib/me";
 
-const STATUS = ["requested", "in_progress", "completed", "cancelled"];
-const STATUS_LABEL = { requested: "Requested", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled" };
-const STATUS_COLOR = { requested: "var(--yellow)", in_progress: "var(--blue)", completed: "var(--green)", cancelled: "#bbb" };
+const STATUS = ["requested", "quoted", "confirmed", "completed", "cancelled"];
+const STATUS_LABEL = { requested: "Requested", quoted: "Quote sent", confirmed: "Confirmed", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled" };
+const STATUS_COLOR = { requested: "var(--yellow)", quoted: "var(--blue)", confirmed: "var(--green)", in_progress: "var(--blue)", completed: "var(--green)", cancelled: "#bbb" };
 
 export default function AdminCollabs() {
   const { loading, supabase } = useAdmin();
@@ -90,7 +90,11 @@ export default function AdminCollabs() {
                   <span style={{ background: STATUS_COLOR[c.status], color: c.status === "requested" ? "#412402" : "#fff", fontSize: 12, fontWeight: 800, padding: "5px 12px", borderRadius: 12 }}>{STATUS_LABEL[c.status]}</span>
                 </div>
 
-                {c.brief && <div style={{ background: "#FBF3E4", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#3a352e", fontWeight: 500, margin: "12px 0" }}>{c.brief}</div>}
+                {c.title && <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ink)", marginTop: 10 }}>{c.title}</div>}
+                {c.brief && <div style={{ background: "#FBF3E4", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#3a352e", fontWeight: 500, margin: "8px 0" }}>{c.brief}</div>}
+                {c.deliverables && <div style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600, marginBottom: 4 }}>Deliverables: {c.deliverables}</div>}
+                {(c.budget_range || c.timeline) && <div style={{ fontSize: 12, color: "var(--faint)", fontWeight: 600, marginBottom: 4 }}>{c.budget_range && `Budget: ${c.budget_range}`}{c.budget_range && c.timeline && " · "}{c.timeline && `Timeline: ${c.timeline}`}</div>}
+                {c.quote_amount != null && <div style={{ background: "#EAF4EA", border: "1px solid #cfe6cf", borderRadius: 12, padding: "10px 14px", margin: "8px 0", fontSize: 13, fontWeight: 800, color: "#2f5d22" }}>Creator quoted: ₹{Number(c.quote_amount).toLocaleString("en-IN")}{c.quote_note ? ` — ${c.quote_note}` : ""}</div>}
 
                 {/* contact info for coordination */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "12px 0", fontSize: 12 }}>

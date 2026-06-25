@@ -91,7 +91,7 @@ export default function CreatorDetail() {
       {isBusiness && (
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", padding: "16px 22px calc(16px + env(safe-area-inset-bottom))", background: "var(--cream)", borderTop: "1.5px solid #efe7d6" }}>
           <button onClick={() => setShowOffer(true)} className="pressable" style={{ width: "100%", background: "var(--ink)", color: "#fff", border: "none", borderRadius: 28, padding: "16px", fontSize: 16, fontWeight: 800 }}>
-            Send collab offer
+            Request collaboration
           </button>
         </div>
       )}
@@ -103,61 +103,64 @@ export default function CreatorDetail() {
 
 function OfferModal({ me, creator, onClose, router }) {
   const [title, setTitle] = useState("");
+  const [deliverables, setDeliverables] = useState("");
   const [brief, setBrief] = useState("");
-  const [amount, setAmount] = useState(creator.rate_per_post || "");
+  const [budget, setBudget] = useState("");
+  const [timeline, setTimeline] = useState("");
   const [sending, setSending] = useState(false);
 
-  const gross = Number(amount) || 0;
-  const pct = commissionFor(creator);
-  const creatorGets = payout(gross, pct);
-  const fee = commissionAmount(gross, pct);
-
   const send = async () => {
-    if (!title.trim() || !amount) return;
+    if (!title.trim() || !brief.trim()) return;
     setSending(true);
-    const { data: deal, error } = await me.supabase.from("deals").insert({
-      business_id: me.profile.id, creator_id: creator.id,
-      title: title.trim(), brief: brief.trim(), amount: gross,
-      commission_pct: pct, payout_amount: creatorGets,
-      status: "pending",
+    const { data: collab, error } = await me.supabase.from("collaborations").insert({
+      brand_id: me.profile.id, creator_id: creator.id,
+      title: title.trim(), brief: brief.trim(), deliverables: deliverables.trim(),
+      budget_range: budget.trim(), timeline: timeline.trim(),
+      status: "requested",
     }).select().single();
-    if (error) { setSending(false); alert("Couldn't send: " + error.message); return; }
+    if (error) { setSending(false); alert("Couldn't send: " + error.message + "\n\nIf this mentions a column or policy, run collaborations-flow-patch.sql in Supabase."); return; }
+
+    // notify the creator they've received a collab request
     await me.supabase.from("notifications").insert({
       user_id: creator.id, kind: "offer",
-      text: `${me.profile.company_name || me.profile.full_name} sent you a collab offer`,
+      text: `You've received a collaboration request via HypePanda. Tap to send your quotation.`,
       link: "/app/deals",
     });
+    // notify the HypePanda team (all admins) so they can coordinate
+    const { data: admins } = await me.supabase.from("profiles").select("id").eq("is_admin", true);
+    if (admins && admins.length) {
+      await me.supabase.from("notifications").insert(
+        admins.map((a) => ({
+          user_id: a.id, kind: "offer",
+          text: `New collab request: ${me.profile.company_name || me.profile.full_name} → ${creator.full_name}`,
+          link: "/admin/collabs",
+        }))
+      );
+    }
     setSending(false);
-    router.push("/app/chat/" + deal.id);
+    onClose();
+    router.push("/app/deals?requested=1");
   };
+
+  const ready = title.trim() && brief.trim();
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50 }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, background: "var(--cream)", borderRadius: "28px 28px 0 0", padding: "24px 22px calc(24px + env(safe-area-inset-bottom))" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, maxHeight: "92dvh", overflowY: "auto", background: "var(--cream)", borderRadius: "28px 28px 0 0", padding: "24px 22px calc(24px + env(safe-area-inset-bottom))" }}>
         <div style={{ width: 44, height: 5, borderRadius: 3, background: "#d8cfbc", margin: "0 auto 18px" }} />
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", margin: "0 0 16px" }}>Offer to {creator.full_name.split(" ")[0]}</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>Request a collaboration with {creator.full_name.split(" ")[0]}</h2>
+        <p style={{ fontSize: 13.5, color: "var(--muted)", fontWeight: 600, lineHeight: 1.5, margin: "0 0 18px" }}>Share what you need. Our team coordinates everything and gets you a quote — you don&apos;t deal with pricing here.</p>
 
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Campaign title (e.g. Diwali reel)" style={modalInput} />
         <textarea value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="What do you want them to make?" rows={3} style={{ ...modalInput, resize: "none" }} />
-        <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: 18, top: 15, fontSize: 16, fontWeight: 700, color: "var(--faint)" }}>&#8377;</span>
-          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" style={{ ...modalInput, paddingLeft: 34 }} />
-        </div>
+        <textarea value={deliverables} onChange={(e) => setDeliverables(e.target.value)} placeholder="Deliverables (e.g. 1 reel + 2 stories)" rows={2} style={{ ...modalInput, resize: "none" }} />
+        <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Budget range (optional, e.g. ₹10k–15k)" style={modalInput} />
+        <input value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder="Timeline / deadline (optional)" style={modalInput} />
 
-        {gross > 0 && (
-          <div style={{ background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 16, padding: 14, marginBottom: 14 }}>
-            <Row label="You pay" value={inr(gross)} />
-            <Row label={"HypePanda fee (" + pct + "%)"} value={"− " + inr(fee)} muted />
-            <div style={{ borderTop: "1.5px solid #f4eede", marginTop: 8, paddingTop: 8 }}>
-              <Row label="Creator receives" value={inr(creatorGets)} bold />
-            </div>
-          </div>
-        )}
-
-        <button onClick={send} disabled={sending || !title.trim() || !amount} className="pressable" style={{
-          width: "100%", background: title.trim() && amount ? "var(--ink)" : "#d8cfbc", color: "#fff", border: "none",
+        <button onClick={send} disabled={sending || !ready} className="pressable" style={{
+          width: "100%", background: ready ? "var(--ink)" : "#d8cfbc", color: "#fff", border: "none",
           borderRadius: 28, padding: "16px", fontSize: 16, fontWeight: 800, marginTop: 4,
-        }}>{sending ? "Sending…" : "Send offer"}</button>
+        }}>{sending ? "Sending…" : "Send request"}</button>
       </div>
     </div>
   );
