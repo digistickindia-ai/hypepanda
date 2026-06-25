@@ -18,9 +18,19 @@ export async function POST(request) {
     if (!email && to_user_id) {
       const supabase = createClient(supaUrl, serviceKey);
       const { data: p } = await supabase.from("profiles").select("email, full_name, company_name").eq("id", to_user_id).maybeSingle();
-      if (!p || !p.email) return NextResponse.json({ error: "no email for user" }, { status: 200 });
-      email = p.email;
-      name = (p.company_name || p.full_name || "there").split(" ")[0];
+      if (p && p.email) {
+        email = p.email;
+        name = (p.company_name || p.full_name || "there").split(" ")[0];
+      } else {
+        // Fall back to the auth record's email (always present) if the
+        // profile row has no email stored.
+        try {
+          const { data: au } = await supabase.auth.admin.getUserById(to_user_id);
+          if (au && au.user && au.user.email) email = au.user.email;
+          if (p) name = (p.company_name || p.full_name || "there").split(" ")[0];
+        } catch (e) {}
+        if (!email) return NextResponse.json({ error: "no email for user" }, { status: 200 });
+      }
     }
     if (!email) return NextResponse.json({ error: "no recipient" }, { status: 200 });
 

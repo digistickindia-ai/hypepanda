@@ -27,21 +27,22 @@ export default function TeamChat() {
   };
 
   useEffect(() => {
+    let ch;
     (async () => {
       const res = await loadMe(router);
       if (!res) return;
       setMe(res);
       supaRef.current = res.supabase;
-      await loadMsgs(res.supabase, res.profile.id);
-      setLoading(false);
-      // realtime: new messages in this user's thread
-      const ch = res.supabase
+      setLoading(false); // show the thread shell right away
+      loadMsgs(res.supabase, res.profile.id); // fetch messages (no await-block on UI)
+      // realtime subscription set up after first paint
+      ch = res.supabase
         .channel("team_thread_" + res.profile.id)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "team_messages", filter: `user_id=eq.${res.profile.id}` },
-          (payload) => { setMsgs((m) => [...m, payload.new]); })
+          (payload) => { setMsgs((m) => m.some((x) => x.id === payload.new.id) ? m : [...m, payload.new]); })
         .subscribe();
-      return () => { res.supabase.removeChannel(ch); };
     })();
+    return () => { if (ch && supaRef.current) supaRef.current.removeChannel(ch); };
   }, []);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
@@ -51,10 +52,15 @@ export default function TeamChat() {
     if (!body || sending) return;
     setSending(true);
     setText("");
-    const { error } = await supaRef.current.from("team_messages").insert({
+    // optimistic: show immediately
+    const temp = { id: "temp_" + Date.now(), user_id: me.profile.id, from_team: false, body, created_at: new Date().toISOString() };
+    setMsgs((m) => [...m, temp]);
+    const { data: inserted, error } = await supaRef.current.from("team_messages").insert({
       user_id: me.profile.id, from_team: false, body, read_by_team: false,
-    });
-    if (error) { setSending(false); setText(body); alert("Couldn't send: " + error.message); return; }
+    }).select().single();
+    if (error) { setSending(false); setText(body); setMsgs((m) => m.filter((x) => x.id !== temp.id)); alert("Couldn't send: " + error.message); return; }
+    // replace temp with the real row
+    setMsgs((m) => m.map((x) => x.id === temp.id ? inserted : x));
     // notify the team (admins) in-app
     const { data: admins } = await supaRef.current.from("profiles").select("id").eq("is_admin", true);
     if (admins?.length) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { loadMe, inr, fmtFollowers, payout, commissionAmount, commissionFor, isProActive, DEFAULT_COMMISSION } from "@/lib/me";
+import { sendEmail } from "@/lib/sendEmail";
 
 export default function CreatorDetail() {
   const router = useRouter();
@@ -126,10 +127,7 @@ function OfferModal({ me, creator, onClose, router }) {
       text: `You've received a collaboration request via HypePanda. Tap to send your quotation.`,
       link: "/app/deals",
     });
-    fetch("/api/send-email", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to_user_id: creator.id, subject: "New collaboration request · HypePanda", heading: "You've got a collaboration request", message: "A brand wants to work with you. Our team is coordinating it — open HypePanda to review the brief and send your quotation.", ctaText: "View request", ctaLink: "https://www.hypepanda.in/app/deals" }),
-    }).catch(() => {});
+    sendEmail({ to_user_id: creator.id, subject: "New collaboration request · HypePanda", heading: "You've got a collaboration request", message: "A brand wants to work with you. Our team is coordinating it — open HypePanda to review the brief and send your quotation.", ctaText: "View request", ctaLink: "https://www.hypepanda.in/app/deals" });
     // notify the HypePanda team (all admins) so they can coordinate
     const { data: admins } = await me.supabase.from("profiles").select("id").eq("is_admin", true);
     if (admins && admins.length) {

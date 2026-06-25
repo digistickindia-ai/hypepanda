@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import AdminShell from "../AdminShell";
 import { useAdmin } from "../useAdmin";
 import { inr } from "@/lib/me";
+import { sendEmail } from "@/lib/sendEmail";
 
 const STATUS = ["requested", "quoted", "confirmed", "completed", "cancelled"];
 const STATUS_LABEL = { requested: "Requested", quoted: "Quote sent", confirmed: "Confirmed", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled" };
@@ -56,10 +57,7 @@ export default function AdminCollabs() {
         // emails (compulsory) to both sides via Resend
         const subj = "Update on your HypePanda collaboration";
         for (const uid of [c.brand_id, c.creator_id]) {
-          fetch("/api/send-email", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ to_user_id: uid, subject: subj, heading: "Collaboration update", message: msg, ctaText: "View in HypePanda", ctaLink: "https://www.hypepanda.in/app/deals" }),
-          }).catch(() => {});
+          sendEmail({ to_user_id: uid, subject: subj, heading: "Collaboration update", message: msg, ctaText: "View in HypePanda", ctaLink: "https://www.hypepanda.in/app/deals" });
         }
       }
     }
@@ -73,10 +71,7 @@ export default function AdminCollabs() {
     setBusy(c.id);
     await supabase.from("team_messages").insert({ user_id: uid, collab_id: c.id, from_team: true, body: body.trim(), read_by_team: true });
     await supabase.from("notifications").insert({ user_id: uid, kind: "message", text: "The HypePanda team sent you a message.", link: "/app/chat" });
-    fetch("/api/send-email", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to_user_id: uid, subject: "Message from the HypePanda team", heading: "You have a new message", message: body.trim(), ctaText: "Reply in HypePanda", ctaLink: "https://www.hypepanda.in/app/chat" }),
-    }).catch(() => {});
+    sendEmail({ to_user_id: uid, subject: "Message from the HypePanda team", heading: "You have a new message", message: body.trim(), ctaText: "Reply in HypePanda", ctaLink: "https://www.hypepanda.in/app/chat" });
     setMsgDraft({ ...msgDraft, [uid]: "" });
     setBusy(null);
     alert("Message sent (in-app + email).");

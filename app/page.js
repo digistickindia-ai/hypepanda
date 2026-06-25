@@ -109,7 +109,6 @@ export default function Landing() {
           {[
             { label: "I'm a Creator", sub: "Grow & earn from collabs", bg: "var(--coral)", title: "#4A1B0C", subc: "#712B13", role: "creator" },
             { label: "I'm a Business", sub: "Find verified creators", bg: "var(--blue)", title: "#042C53", subc: "#0C447C", role: "business" },
-            { label: "I'm an Agency", sub: "Manage brands in one place", bg: "var(--yellow)", title: "#412402", subc: "#633806", role: "agency" },
           ].map((c) => (
             <a key={c.role} href={"/app?role=" + c.role} className="pressable" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: c.bg, borderRadius: 22, padding: "20px 22px", marginBottom: 12, textDecoration: "none" }}>
               <div>
