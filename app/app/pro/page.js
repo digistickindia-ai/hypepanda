@@ -50,7 +50,7 @@ function ProInner() {
       if (j.paytmRaw) console.log("Paytm raw response:", j.paytmRaw);
       if (!j.txnToken) { alert(j.error || "Couldn't start payment. Make sure Paytm keys are set."); setBusy(false); return; }
 
-      const host = j.mode === "production" ? "https://securegw.paytm.in" : "https://securegw-stage.paytm.in";
+      const host = j.mode === "production" ? "https://secure.paytmpayments.com" : "https://securegw-stage.paytm.in";
 
       const launch = () => {
         if (!window.Paytm || !window.Paytm.CheckoutJS) { alert("Payment SDK still loading, try again in a second."); setBusy(false); return; }
