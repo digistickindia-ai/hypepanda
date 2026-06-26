@@ -96,6 +96,7 @@ function CreatorHome({ me, router }) {
   return (
     <Shell>
       <VerifyBanner me={me} />
+      <LiveStatusBanner me={me} />
       {/* Greeting + earnings chip */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
         <div>
@@ -280,7 +281,7 @@ function BusinessHome({ me, router }) {
   const proActive = (c) => c.is_pro && c.pro_until && new Date(c.pro_until).getTime() > Date.now();
 
   useEffect(() => { (async () => {
-    const { data } = await me.supabase.from("profiles").select("*").eq("role", "creator").eq("onboarding_done", true).order("created_at", { ascending: false });
+    const { data } = await me.supabase.from("profiles").select("*").eq("role", "creator").eq("onboarding_done", true).eq("verification_status", "verified").order("created_at", { ascending: false });
     const list = (data || []).filter((c) => !c.suspended);
     list.sort((a, b) => (proActive(b) ? 1 : 0) - (proActive(a) ? 1 : 0));
     setCreators(list);
@@ -444,6 +445,31 @@ function Shell({ children }) {
     <div style={{ height: "100dvh", background: "var(--cream)", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto" }}>
       <div style={{ flex: 1, padding: "28px 22px 20px", overflowY: "auto" }}>{children}</div>
       <TabBar />
+    </div>
+  );
+}
+
+function LiveStatusBanner({ me }) {
+  const p = me.profile;
+  if (p.role !== "creator") return null;
+  const status = p.verification_status || "pending";
+  if (status === "verified") return null; // verified creators are live; no banner needed
+
+  const rejected = status === "rejected";
+  return (
+    <div style={{
+      background: rejected ? "#FBE3E0" : "#E8F0FB",
+      border: "1.5px solid " + (rejected ? "#E8A9A2" : "#A9CBF0"),
+      borderRadius: 16, padding: "13px 16px", marginBottom: 16,
+    }}>
+      <div style={{ fontSize: 13.5, fontWeight: 800, color: rejected ? "#A32D2D" : "#1B4A7A", marginBottom: 3 }}>
+        {rejected ? "Verification not approved" : "⏳ Pending verification"}
+      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: rejected ? "#A32D2D" : "#2C5E8F", lineHeight: 1.5 }}>
+        {rejected
+          ? "Your profile wasn't approved this time. Please contact our team at support@hypepanda.in for details."
+          : "Our team is reviewing your profile. You're not visible to brands yet — once verified, you'll go live and start receiving collaboration requests."}
+      </div>
     </div>
   );
 }

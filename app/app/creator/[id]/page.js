@@ -19,6 +19,11 @@ export default function CreatorDetail() {
     if (!res) return;
     setMe(res);
     const { data } = await res.supabase.from("profiles").select("*").eq("id", id).single();
+    // A business must not see an unverified (or suspended) creator, even via a direct link.
+    if (res.profile.role !== "creator" && res.profile.id !== id && (data?.verification_status !== "verified" || data?.suspended)) {
+      router.replace("/app/home");
+      return;
+    }
     setCreator(data);
     const { data: vids } = await res.supabase.from("portfolio").select("*").eq("creator_id", id).eq("status", "approved").order("created_at");
     setVideos(vids || []);

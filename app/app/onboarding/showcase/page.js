@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { uploadVideo, MAX_VIDEO_MB } from "@/lib/storage";
+import { uploadVideo, MAX_VIDEO_MB, uploadAvatar, MAX_PHOTO_MB } from "@/lib/storage";
 import { isProActive, FREE_REELS, PRO_REELS } from "@/lib/me";
 
 const MIN_VIDEOS = 2;
@@ -17,16 +17,37 @@ export default function Showcase() {
   const [err, setErr] = useState("");
   const [finishing, setFinishing] = useState(false);
   const [maxVideos, setMaxVideos] = useState(FREE_REELS);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   useEffect(() => { (async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.replace("/app"); return; }
     setUser(user);
-    const { data: prof } = await supabase.from("profiles").select("is_pro, pro_until").eq("id", user.id).single();
+    const { data: prof } = await supabase.from("profiles").select("is_pro, pro_until, avatar_url").eq("id", user.id).single();
     setMaxVideos(isProActive(prof) ? PRO_REELS : FREE_REELS);
+    if (prof?.avatar_url) setAvatarUrl(prof.avatar_url);
     const { data } = await supabase.from("portfolio").select("*").eq("creator_id", user.id).order("created_at");
     setVideos(data || []);
   })(); }, []);
+
+  const onPickAvatar = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setErr("");
+    if (!file.type.startsWith("image/")) { setErr("Please choose an image for your profile photo."); return; }
+    if (file.size > MAX_PHOTO_MB * 1024 * 1024) { setErr(`Profile photo must be under ${MAX_PHOTO_MB} MB.`); return; }
+    setAvatarBusy(true);
+    try {
+      const { url } = await uploadAvatar(supabase, user.id, file);
+      await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      setAvatarUrl(url);
+    } catch (e) {
+      setErr("Photo upload failed: " + (e.message || "try again"));
+    }
+    setAvatarBusy(false);
+  };
 
   const MAX_VIDEOS = maxVideos;
 
@@ -61,12 +82,13 @@ export default function Showcase() {
 
   const finish = async () => {
     if (videos.length < MIN_VIDEOS) return;
+    if (!avatarUrl) { setErr("Please add a profile photo before finishing."); return; }
     setFinishing(true);
     await supabase.from("profiles").update({ showcase_done: true }).eq("id", user.id);
     router.replace("/app/home");
   };
 
-  const enough = videos.length >= MIN_VIDEOS;
+  const enough = videos.length >= MIN_VIDEOS && !!avatarUrl;
 
   return (
     <main style={{ minHeight: "100dvh", background: "var(--cream)", display: "flex", justifyContent: "center" }}>
@@ -86,6 +108,20 @@ export default function Showcase() {
         <p style={{ fontSize: 14, color: "var(--muted)", fontWeight: 500, textAlign: "center", margin: "0 0 24px", lineHeight: 1.5 }}>
           Add {MIN_VIDEOS}–{MAX_VIDEOS} short videos of your best content. Brands see these on your profile. Our team reviews each one before it goes live.
         </p>
+
+        {/* Required profile photo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #efe7d6", borderRadius: 18, padding: 14, marginBottom: 16 }}>
+          <label style={{ cursor: avatarBusy ? "default" : "pointer", flexShrink: 0 }}>
+            <input type="file" accept="image/*" onChange={onPickAvatar} disabled={avatarBusy} style={{ display: "none" }} />
+            <div style={{ width: 64, height: 64, borderRadius: "50%", overflow: "hidden", background: avatarUrl ? "#000" : "var(--cream)", border: "2px dashed " + (avatarUrl ? "transparent" : "#d8cfbc"), display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 22 }}>＋</span>}
+            </div>
+          </label>
+          <div>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: "var(--ink)" }}>Profile photo {avatarUrl ? "✓" : "(required)"}</div>
+            <div style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600, lineHeight: 1.4 }}>{avatarBusy ? "Uploading…" : "Tap the circle to add a clear photo of yourself. Brands see this first."}</div>
+          </div>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
           {videos.map((v) => (
