@@ -119,6 +119,10 @@ export default function AdminUsers() {
                   {isCreator ? `${u.niche || "—"} · @${u.instagram_handle || "—"}` : `${u.company_name || "—"} · business`}
                   {u.city ? " · " + u.city : ""}
                 </div>
+                <div style={{ fontSize: 12, color: "var(--ink)", fontWeight: 600, marginTop: 2, wordBreak: "break-all" }}>
+                  {u.email ? <a href={"mailto:" + u.email} style={{ color: "var(--blue)", textDecoration: "none" }}>{u.email}</a> : <span style={{ color: "var(--faint)" }}>no email</span>}
+                  {u.phone ? <> · <a href={"tel:" + u.phone} style={{ color: "var(--blue)", textDecoration: "none" }}>{u.phone}</a></> : ""}
+                </div>
                 <div style={{ fontSize: 12, color: "var(--faint)", fontWeight: 600 }}>
                   {isCreator && (u.instagram_connected ? `✓ ${fmtFollowers(u.followers)} followers · ${inr(u.rate_per_post)}/post` : "not verified")}
                 </div>
